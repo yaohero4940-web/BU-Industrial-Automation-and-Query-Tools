@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STJ-NN Steam Calculation Software</title>
+  <meta name="description" content="Steam, condensate, piping, valve, cost, air, water and steam table engineering calculation software.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/css/steam-system.css">
+  <link rel="stylesheet" href="../../ui/portal.css">
+</head>
+<body class="steam-branch-page">
+  <header class="site-header">
+    <a class="brand" href="../../../index.html" aria-label="返回首页">
+      <span class="brand-mark">SC</span>
+      <span>
+        <strong>STJ-NN 蒸汽相关计算软件</strong>
+        <small>Steam / condensate calculation toolbox</small>
+      </span>
+    </a>
+    <nav class="header-nav" aria-label="页面导航">
+      <a href="#calculator" data-i18n="navCalculator">Calculator</a>
+      <a href="#equation" data-i18n="navFormula">Formula</a>
+      <button type="button" id="langToggle" class="nav-button">中文</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow" data-i18n="heroEyebrow">Engineering calculation toolbox</p>
+        <h1 data-i18n="heroTitle">Steam and Condensate Engineering Calculator</h1>
+        <p data-i18n="heroCopy">
+          Covers steam piping design, valves and orifices, condensate load, steam dryness, air influence, energy cost,
+          boiler efficiency, flash steam, air piping, water systems, and steam tables.
+        </p>
+      </div>
+      <aside class="hero-card">
+        <span data-i18n="toolCountLabel">Available tools</span>
+        <strong id="toolCount">0</strong>
+        <p data-i18n="heroCardCopy">Inputs, results, formulas, and suggested values are organized in one engineering workspace.</p>
+      </aside>
+    </section>
+
+    <section id="calculator" class="calculator-layout">
+      <aside class="tool-menu">
+        <div class="menu-head">
+          <h2 data-i18n="menuTitle">Calculator directory</h2>
+          <input id="toolSearch" type="search" placeholder="Search tools">
+        </div>
+        <div id="toolMenu"></div>
+      </aside>
+
+      <section class="calculator-card">
+        <div class="calculator-head">
+          <div>
+            <p class="eyebrow" id="toolGroup">Steam</p>
+            <h2 id="toolTitle">Select a calculator</h2>
+          </div>
+          <div class="calculator-tools">
+            <button type="button" id="printBtn" class="print-btn" data-i18n="print">Print</button>
+            <label class="unit-group">
+              <span data-i18n="unit">Unit</span>
+              <select id="unitGroup">
+                <option value="si">SI</option>
+                <option value="siBar" selected>SI(bar)</option>
+                <option value="imperial">Imperial</option>
+                <option value="mks">MKS</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <form id="calculatorForm" class="input-panel"></form>
+
+        <section class="result-panel" aria-live="polite">
+          <h2 data-i18n="result">Result</h2>
+          <div id="resultOutput" class="empty-result">Enter values and calculate.</div>
+        </section>
+      </section>
+    </section>
+
+    <section id="equation" class="info-section">
+      <h2 data-i18n="formula">Formula</h2>
+      <div id="equationOutput" class="equation-box"></div>
+    </section>
+
+    <section id="validation" class="info-section" hidden>
+      <h2>内部检查</h2>
+      <p>内部一致性检查区域已隐藏。</p>
+      <div id="validationOutput" class="validation-grid"></div>
+    </section>
+  </main>
+
+  <script src="assets/js/steam-system.js"></script>
+  <script src="../../ui/portal.js?v=20260628-theme"></script>
+</body>
+</html>

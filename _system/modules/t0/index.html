@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thermal Engineering 计算工具</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="../../ui/portal.css" />
+  </head>
+  <body class="thermal-branch-page">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Thermal Engineering</p>
+        <h1 data-i18n="appTitle">暖通热工计算工具</h1>
+      </div>
+      <div class="toolbar">
+        <button class="icon-button" id="langToggle" type="button" aria-label="Language">中 / EN</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar" aria-label="Tools">
+        <nav id="toolNav"></nav>
+      </aside>
+
+      <section class="workspace">
+        <section class="intro">
+          <div>
+            <p class="eyebrow" data-i18n="branchLabel">公司网站分支</p>
+            <h2 id="toolTitle"></h2>
+          </div>
+          <p id="toolDescription"></p>
+        </section>
+
+        <section class="tool-grid">
+          <form class="panel input-panel" id="inputPanel"></form>
+
+          <section class="panel result-panel">
+            <div class="tab-row">
+              <div class="tabbar" id="vizTabs"></div>
+              <button class="tab-button export-button" id="exportPdf" type="button" data-i18n="exportPdf">导出 PDF</button>
+            </div>
+            <canvas id="mainChart" width="900" height="420"></canvas>
+            <canvas id="animationCanvas" width="900" height="220"></canvas>
+            <div class="metrics" id="metrics"></div>
+          </section>
+        </section>
+
+        <section class="panel formula-panel">
+          <h3 id="formulaTitle"></h3>
+          <p class="formula" id="formula"></p>
+        </section>
+
+        <section class="content-sections" id="contentSections"></section>
+      </section>
+    </main>
+
+    <section class="print-report" id="printReport" aria-hidden="true"></section>
+
+    <script src="app.js?v=20260614-ahu-align"></script>
+    <script src="../../ui/portal.js?v=20260628-theme"></script>
+  </body>
+</html>

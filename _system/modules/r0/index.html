@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Refrigeration engineering calculator toolbox</title>
+  <meta name="description" content="Engineering calculators for chillers, cooling towers, water piping, pumps, psychrometrics, AHU loads, outdoor air loads and chilled-water storage.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/css/refrigeration.css">
+  <link rel="stylesheet" href="../../ui/portal.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../../../index.html" aria-label="Back to home">
+      <span class="brand-mark">RC</span>
+      <span>
+        <strong data-i18n="brandTitle">Refrigeration engineering calculator toolbox</strong>
+        <small>Refrigeration / chilled-water engineering toolbox</small>
+      </span>
+    </a>
+    <nav class="header-nav" aria-label="Page navigation">
+      <a href="#calculator" data-i18n="navCalculator">Calculators</a>
+      <a href="#audit" data-i18n="navAudit">Formula check</a>
+      <button type="button" id="langToggle" class="nav-button">中文</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Cooling plant engineering</p>
+        <h1 data-i18n="heroTitle">A verifiable engineering workspace for refrigeration plant calculations</h1>
+        <p data-i18n="heroCopy">
+          Covers chillers, cooling towers, water piping, pumps, psychrometrics, AHU cooling coils, chilled-water storage, COP, cycles of concentration, and cleanroom outdoor-air loads.
+          Each tool shows intermediate values, unit conversions, operating boundaries, and common input warnings.
+        </p>
+      </div>
+      <aside class="hero-card" aria-label="Tool overview">
+        <span data-i18n="toolCountLabel">Tools organized</span>
+        <strong>10</strong>
+        <p data-i18n="toolCountCopy">Uses one set of constants, units, and validation rules.</p>
+      </aside>
+    </section>
+
+    <section class="constant-strip" aria-label="Global constants">
+      <span data-i18n="constWaterDensity">Water density 1000 kg/m3</span>
+      <span data-i18n="constWaterCp">Water cp 4.1868 kJ/(kg.C)</span>
+      <span data-i18n="constAirCp">Air cp 1.005 kJ/(kg.C)</span>
+      <span data-i18n="constAtm">Standard pressure 101.325 kPa</span>
+      <span>1 RT = 3.51685 kW</span>
+    </section>
+
+    <section id="calculator" class="calculator-layout">
+      <aside class="tool-menu">
+        <div class="menu-head">
+          <h2 data-i18n="menuTitle">Calculator directory</h2>
+          <input id="toolSearch" type="search" placeholder="Search: capacity, pump, psychrometrics, AHU...">
+        </div>
+        <div id="toolMenu"></div>
+      </aside>
+
+      <section class="workspace">
+        <div class="calculator-head">
+          <div>
+            <p class="eyebrow" id="toolGroup">冷源系统</p>
+            <h2 id="toolTitle">冷水机组制冷量/水流量</h2>
+            <p id="toolDesc"></p>
+          </div>
+          <div class="head-actions">
+            <div class="mode-switch" id="modeSwitch" aria-label="Calculation mode"></div>
+            <button type="button" id="printBtn" class="print-button" data-i18n="print">Print sheet</button>
+          </div>
+        </div>
+
+        <div class="tool-grid">
+          <form id="calculatorForm" class="panel input-panel"></form>
+
+          <section class="panel result-panel" aria-live="polite">
+            <div class="result-head">
+              <h3 data-i18n="results">Results</h3>
+              <span id="qualityBadge" class="quality-badge">Ready</span>
+            </div>
+            <div id="resultOutput" class="metrics"></div>
+            <div id="warnOutput" class="warnings"></div>
+          </section>
+        </div>
+
+        <section class="panel formula-panel">
+          <div>
+            <h3 data-i18n="formulaNotes">Formula and corrections</h3>
+            <p id="formulaOutput"></p>
+          </div>
+          <div>
+            <h3 data-i18n="boundaries">Engineering boundaries</h3>
+            <p id="boundaryOutput"></p>
+          </div>
+        </section>
+      </section>
+    </section>
+
+    <section id="audit" class="audit-section">
+      <div class="section-heading">
+        <p class="eyebrow">Formula check</p>
+        <h2 data-i18n="auditTitle">Checks and refinements applied to the draft formulas</h2>
+      </div>
+      <div class="audit-grid">
+        <article>
+          <span>01</span>
+          <h3 data-i18n="audit1Title">Psychrometric enthalpy unit fixed</h3>
+          <p data-i18n="audit1Copy">When humidity ratio is displayed in g/kg dry air, enthalpy must use kg/kg: h = 1.005t + w(2501 + 1.86t), where w = d/1000.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3 data-i18n="audit2Title">Wet-bulb relation corrected</h3>
+          <p data-i18n="audit2Copy">Uses Pv = Pws(twb) - A P (tdb - twb), where A = 0.00066(1 + 0.00115twb), with pressure in kPa.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3 data-i18n="audit3Title">Pipe friction factor completed</h3>
+          <p data-i18n="audit3Copy">Laminar flow uses 64/Re; turbulent flow uses the Swamee-Jain explicit formula so lambda is computable.</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3 data-i18n="audit4Title">Cooling tower blowdown clarified</h3>
+          <p data-i18n="audit4Copy">Recommended balance: Qb = Qe/(N - 1) - Qwind. A conservative draft method is also shown for comparison.</p>
+        </article>
+        <article>
+          <span>05</span>
+          <h3 data-i18n="audit5Title">Outdoor-air humidification converted</h3>
+          <p data-i18n="audit5Copy">Msteam = m_oa x 3600 x (d_room - d_out) / 1000, avoiding a 1000x error from treating g as kg.</p>
+        </article>
+        <article>
+          <span>06</span>
+          <h3 data-i18n="audit6Title">Result validity warnings added</h3>
+          <p data-i18n="audit6Copy">Inline warnings cover negative temperature differences, N <= 1, Pv above saturation, invalid efficiency, and Reynolds transition ranges.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/refrigeration.js"></script>
+  <script src="../../ui/portal.js?v=20260628-theme"></script>
+</body>
+</html>

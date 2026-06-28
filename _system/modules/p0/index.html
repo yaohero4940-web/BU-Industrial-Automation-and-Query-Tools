@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../../ui/portal.css">
+<title>PPCL 命令查询工具</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #001965;
+    --primary-light: #0a2d8a;
+    --primary-dark: #000d3a;
+    --accent: #4a90d9;
+    --accent-light: #6bb3f0;
+    --bg: #f0f2f7;
+    --card-bg: #ffffff;
+    --text: #1a1a2e;
+    --text-light: #666680;
+    --border: #d8dce6;
+    --shadow: 0 10px 30px rgba(0,25,101,0.08);
+    --shadow-hover: 0 18px 44px rgba(0,25,101,0.16);
+    --radius: 10px;
+    --transition: all 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+    --header-height: 142px;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background:
+        radial-gradient(circle at top left, rgba(74,144,217,0.16), transparent 28rem),
+        linear-gradient(180deg, #f7f9fd 0%, var(--bg) 38%);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.header {
+    background:
+        linear-gradient(135deg, rgba(0,13,58,0.96) 0%, rgba(0,25,101,0.98) 52%, rgba(10,45,138,0.98) 100%);
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 16px 38px rgba(0,0,0,0.24);
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: rgba(255,255,255,0.18);
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 32px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.brand-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+    flex: 0 0 auto;
+}
+
+.brand-text h1 {
+    font-size: 20px;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.brand-text p {
+    margin-top: 3px;
+    font-size: 12px;
+    opacity: 0.76;
+}
+
+.header-stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.header-stats span {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: rgba(255,255,255,0.9);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.search-bar {
+    padding: 12px 32px 18px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.search-wrapper svg {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    fill: rgba(255,255,255,0.7);
+    pointer-events: none;
+}
+
+#searchInput {
+    width: 100%;
+    height: 48px;
+    padding: 0 48px;
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: var(--radius);
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 15px;
+    outline: none;
+    transition: var(--transition);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+#searchInput::placeholder {
+    color: rgba(255,255,255,0.58);
+}
+
+#searchInput:focus {
+    border-color: rgba(255,255,255,0.62);
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.12);
+}
+
+#clearSearch {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+#clearSearch:hover {
+    background: rgba(255,255,255,0.28);
+}
+
+.main-container {
+    display: flex;
+    margin-top: var(--header-height);
+    min-height: calc(100vh - var(--header-height));
+}
+
+.sidebar {
+    width: 280px;
+    background: rgba(255,255,255,0.92);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.sidebar-title {
+    padding: 0 10px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.category-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
+}
+
+.category-item:hover {
+    background: rgba(0,25,101,0.05);
+    border-color: rgba(0,25,101,0.08);
+}
+
+.category-item.active {
+    background: rgba(0,25,101,0.09);
+    border-color: rgba(0,25,101,0.16);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.category-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: var(--primary);
+    font-size: 12px;
+    font-weight: 800;
+    flex: 0 0 auto;
+}
+
+.category-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.category-count {
+    background: var(--bg);
+    color: var(--text-light);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.category-item.active .category-count {
+    background: var(--primary);
+    color: white;
+}
+
+.content {
+    flex: 1;
+    margin-left: 280px;
+    padding: 28px 32px 36px;
+    max-width: calc(100% - 280px);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.results-count {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.results-count strong {
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.view-hint {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 16px;
+}
+
+.result-card {
+    min-height: 146px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(216,220,230,0.95);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.28s ease forwards;
+}
+
+.result-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--category-color, var(--primary));
+    opacity: 0.9;
+}
+
+.result-card:hover,
+.result-card:focus-visible {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-3px);
+    border-color: rgba(74,144,217,0.65);
+    outline: none;
+}
+
+.result-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.result-card-title {
+    color: var(--primary);
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.result-card-badge {
+    border: 1px solid color-mix(in srgb, var(--category-color, var(--accent)) 28%, white);
+    background: color-mix(in srgb, var(--category-color, var(--accent)) 12%, white);
+    color: color-mix(in srgb, var(--category-color, var(--accent)) 74%, #001965);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.result-card-preview {
+    color: var(--text-light);
+    font-size: 13px;
+    line-height: 1.58;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.detail-view {
+    display: none;
+}
+
+.detail-view.active {
+    display: block;
+    animation: fadeIn 0.24s ease forwards;
+}
+
+.detail-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.detail-back,
+.detail-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.detail-back:hover,
+.detail-nav-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.detail-index {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.detail-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.detail-card-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 26px 30px;
+}
+
+.detail-card-title {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 10px;
+}
+
+.detail-card-category {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+}
+
+.detail-card-body {
+    padding: 28px 30px 30px;
+}
+
+.detail-content {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.82;
+}
+
+.detail-content .content-line {
+    margin-bottom: 5px;
+}
+
+.detail-content .content-line.empty {
+    height: 12px;
+}
+
+.detail-content .syntax-line,
+.detail-content .example-line {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.detail-content .content-line.syntax-line {
+    background: #f5f7fb;
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    color: var(--primary);
+    font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    margin: 8px 0;
+    padding: 9px 13px;
+}
+
+.detail-content .content-line.example-line {
+    background: #f8f9fa;
+    border: 1px solid #e8ebf2;
+    border-radius: 8px;
+    color: #2d3342;
+    font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    margin: 5px 0;
+    padding: 7px 13px;
+}
+
+.detail-content .section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 800;
+    margin: 18px 0 6px;
+}
+
+.detail-content .section-label::before {
+    content: '';
+    width: 5px;
+    height: 18px;
+    border-radius: 3px;
+    background: var(--accent);
+}
+
+.detail-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.detail-nav-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.no-results {
+    text-align: center;
+    padding: 70px 20px;
+    color: var(--text-light);
+}
+
+.no-results svg {
+    width: 72px;
+    height: 72px;
+    fill: #cfd5e2;
+    margin-bottom: 16px;
+}
+
+.no-results h3 {
+    color: var(--text);
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.no-results p {
+    font-size: 14px;
+}
+
+mark {
+    background: #fff1a8;
+    color: inherit;
+    padding: 1px 3px;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c4c8d4;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a0a4b0;
+}
+
+.footer {
+    color: var(--text-light);
+    font-size: 12px;
+    margin-top: 40px;
+    padding: 18px 4px 0;
+    text-align: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+    :root {
+        --header-height: 148px;
+    }
+
+    .header-top {
+        align-items: flex-start;
+        padding: 14px 16px 10px;
+    }
+
+    .brand-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .brand-text h1 {
+        font-size: 17px;
+    }
+
+    .brand-text p,
+    .header-stats {
+        display: none;
+    }
+
+    .search-bar {
+        padding: 10px 16px 14px;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        width: 100%;
+        height: 58px;
+        bottom: auto;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 9px 12px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-title {
+        display: none;
+    }
+
+    .category-item {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 118px;
+        padding: 8px 10px;
+    }
+
+    .category-icon {
+        display: none;
+    }
+
+    .category-name {
+        max-width: 120px;
+    }
+
+    .content {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 76px 16px 30px;
+    }
+
+    .results-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .view-hint {
+        display: none;
+    }
+
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-toolbar,
+    .detail-nav {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .detail-index {
+        order: -1;
+    }
+
+    .detail-card-header,
+    .detail-card-body {
+        padding: 22px 18px;
+    }
+}
+</style>
+<style id="premium-ppcl-ui">
+:root {
+    --ink: #070a16;
+    --ink-soft: #10172a;
+    --surface: rgba(255,255,255,0.78);
+    --surface-strong: rgba(255,255,255,0.94);
+    --glass-line: rgba(255,255,255,0.42);
+    --premium-shadow: 0 24px 80px rgba(0,25,101,0.16);
+    --premium-ring: 0 0 0 1px rgba(255,255,255,0.7), 0 20px 70px rgba(0,25,101,0.16);
+}
+
+body {
+    background:
+        linear-gradient(120deg, rgba(240,242,247,0.96), rgba(255,255,255,0.94) 42%, rgba(232,240,250,0.96)),
+        var(--bg);
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(100deg, rgba(0,25,101,0.12), transparent 34%, rgba(74,144,217,0.16) 64%, transparent),
+        repeating-linear-gradient(90deg, rgba(0,25,101,0.028) 0 1px, transparent 1px 88px);
+    mask-image: linear-gradient(to bottom, #000 0, transparent 62%);
+    z-index: -3;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    width: 420px;
+    height: 420px;
+    left: var(--spot-x, 50%);
+    top: var(--spot-y, 34%);
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(74,144,217,0.22), rgba(0,25,101,0.12) 38%, transparent 68%);
+    filter: blur(18px);
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    z-index: -2;
+}
+
+.header {
+    min-height: 184px;
+    background:
+        linear-gradient(120deg, rgba(0,13,58,0.98), rgba(0,25,101,0.94) 46%, rgba(10,45,138,0.92)),
+        var(--primary);
+    backdrop-filter: blur(24px) saturate(135%);
+    overflow: hidden;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    inset: -40% -10% auto;
+    height: 220px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+    transform: rotate(-8deg) translateX(var(--shine-x, -42%));
+    transition: transform 0.18s linear;
+}
+
+.header-top {
+    padding: 18px 38px 10px;
+    border-bottom-color: rgba(255,255,255,0.08);
+}
+
+.brand-icon {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.26), rgba(255,255,255,0.08));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.34), 0 18px 44px rgba(0,0,0,0.24);
+}
+
+.brand-icon::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.24);
+}
+
+.brand-text h1 {
+    font-size: clamp(20px, 2.2vw, 30px);
+    letter-spacing: 0;
+}
+
+.brand-text p {
+    color: rgba(255,255,255,0.68);
+    letter-spacing: 0.02em;
+}
+
+.header-stats span {
+    color: rgba(255,255,255,0.86);
+    background: rgba(255,255,255,0.11);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+.search-bar {
+    padding: 12px 38px 24px;
+}
+
+.search-wrapper {
+    max-width: min(1160px, calc(100vw - 48px));
+}
+
+#searchInput {
+    height: 58px;
+    border-radius: 14px;
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 18px 55px rgba(0,0,0,0.16);
+    font-size: 16px;
+}
+
+#searchInput:focus {
+    background: rgba(255,255,255,0.22);
+    box-shadow: 0 0 0 5px rgba(107,179,240,0.18), 0 20px 70px rgba(0,0,0,0.2);
+}
+
+.main-container {
+    margin-top: 184px;
+}
+
+.sidebar {
+    top: 184px;
+    width: 304px;
+    padding: 24px 14px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(22px) saturate(145%);
+    box-shadow: 10px 0 36px rgba(0,25,101,0.06);
+}
+
+.sidebar-title {
+    font-size: 11px;
+    color: rgba(26,26,46,0.52);
+}
+
+.category-item {
+    position: relative;
+    min-height: 46px;
+    border-radius: 12px;
+    transform: translateZ(0);
+}
+
+.category-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(120deg, rgba(255,255,255,0.7), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.category-item:hover::after,
+.category-item.active::after {
+    opacity: 1;
+}
+
+.category-item.active {
+    box-shadow: var(--premium-ring);
+}
+
+.content {
+    margin-left: 304px;
+    max-width: calc(100% - 304px);
+    padding: 34px 42px 54px;
+    position: relative;
+}
+
+.content::before {
+    content: 'PPCL Reference';
+    display: block;
+    color: rgba(0,25,101,0.42);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 2px 0 8px;
+}
+
+.ppcl-page-tools {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: absolute;
+    top: -38px;
+    right: 42px;
+    z-index: 5;
+    min-height: 40px;
+    margin: 0;
+}
+
+.ppcl-lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 118px;
+    min-height: 38px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(0,25,101,0.16);
+    background: rgba(255,255,255,0.72);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(0,25,101,0.08), inset 0 1px 0 rgba(255,255,255,0.82);
+    backdrop-filter: blur(14px);
+    transition: var(--transition);
+}
+
+.ppcl-lang-toggle::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    box-shadow: 0 0 0 4px rgba(74,144,217,0.14);
+}
+
+.ppcl-lang-toggle:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0,25,101,0.32);
+    box-shadow: 0 18px 38px rgba(0,25,101,0.14), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+body.portal-theme-dark .ppcl-lang-toggle {
+    background: rgba(18,31,74,0.82);
+    border-color: rgba(143,215,255,0.24);
+    color: #eef7ff;
+    box-shadow: 0 16px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.results-header {
+    align-items: center;
+    padding: 10px 0 20px;
+}
+
+.results-count {
+    color: rgba(26,26,46,0.64);
+}
+
+.results-count strong {
+    font-size: 28px;
+    letter-spacing: -0.03em;
+}
+
+.view-hint {
+    padding: 8px 12px;
+    border: 1px solid rgba(0,25,101,0.08);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.56);
+    backdrop-filter: blur(16px);
+}
+
+.results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 22px;
+    perspective: 1200px;
+}
+
+.result-card {
+    isolation: isolate;
+    min-height: 174px;
+    padding: 22px 22px 18px;
+    border-radius: 18px;
+    border-color: rgba(255,255,255,0.68);
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,255,255,0.68)),
+        var(--card-bg);
+    box-shadow: 0 14px 48px rgba(0,25,101,0.09);
+    transform-style: preserve-3d;
+    will-change: transform, box-shadow;
+}
+
+.result-card::before {
+    inset: 0;
+    width: auto;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at var(--mx, 50%) var(--my, 20%), color-mix(in srgb, var(--category-color, var(--accent)) 22%, transparent), transparent 40%),
+        linear-gradient(180deg, color-mix(in srgb, var(--category-color, var(--accent)) 72%, white), color-mix(in srgb, var(--category-color, var(--accent)) 12%, transparent));
+    opacity: 0.72;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    padding: 1px;
+}
+
+.result-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 10%), rgba(255,255,255,0.72), transparent 32%);
+    opacity: 0;
+    transition: opacity 0.24s ease;
+    z-index: -1;
+}
+
+.result-card:hover,
+.result-card:focus-visible,
+.result-card.is-tilting {
+    box-shadow: 0 30px 90px rgba(0,25,101,0.18);
+    transform: translateY(-8px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+}
+
+.result-card:hover::after,
+.result-card:focus-visible::after {
+    opacity: 1;
+}
+
+.result-card-title {
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+.result-card-badge {
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+}
+
+.result-card-preview {
+    font-size: 13px;
+    -webkit-line-clamp: 4;
+}
+
+.no-results {
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 24px;
+    background: rgba(255,255,255,0.62);
+    box-shadow: var(--premium-shadow);
+}
+
+.detail-toolbar {
+    position: sticky;
+    top: 196px;
+    z-index: 20;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.68);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.62);
+    backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 18px 54px rgba(0,25,101,0.1);
+}
+
+.detail-back,
+.detail-nav-btn,
+.premium-action {
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.detail-card {
+    border-radius: 24px;
+    border-color: rgba(255,255,255,0.7);
+    box-shadow: 0 28px 90px rgba(0,25,101,0.15);
+}
+
+.detail-card-header {
+    position: relative;
+    padding: 34px 38px;
+    background:
+        linear-gradient(130deg, rgba(0,13,58,1), rgba(0,25,101,0.96) 46%, rgba(74,144,217,0.78)),
+        var(--primary);
+    overflow: hidden;
+}
+
+.detail-card-header::after {
+    content: '';
+    position: absolute;
+    inset: auto -10% -58% 18%;
+    height: 180px;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.22), transparent 62%);
+}
+
+.detail-card-title {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(28px, 4vw, 46px);
+    letter-spacing: -0.04em;
+}
+
+.detail-card-category {
+    position: relative;
+    z-index: 1;
+}
+
+.detail-card-body {
+    padding: 34px 38px 38px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,250,254,0.94));
+}
+
+.detail-content .content-line.syntax-line,
+.detail-content .content-line.example-line {
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+}
+
+.premium-command {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: min(120px, 12vh);
+    background: rgba(7,10,22,0.34);
+    backdrop-filter: blur(20px);
+    z-index: 3000;
+}
+
+.premium-command.active {
+    display: flex;
+}
+
+.premium-panel {
+    width: min(720px, calc(100vw - 28px));
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.62);
+    border-radius: 22px;
+    background: rgba(255,255,255,0.86);
+    box-shadow: 0 34px 120px rgba(0,0,0,0.28);
+}
+
+.premium-command-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(0,25,101,0.08);
+}
+
+.premium-command-head input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 18px;
+}
+
+.premium-command-list {
+    max-height: min(430px, 52vh);
+    overflow: auto;
+    padding: 8px;
+}
+
+.premium-command-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 14px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.premium-command-item:hover,
+.premium-command-item.active {
+    background: rgba(0,25,101,0.08);
+}
+
+.premium-command-item strong {
+    font-size: 14px;
+}
+
+.premium-command-item span {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.premium-floatbar {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1400;
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.72);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.66);
+    backdrop-filter: blur(20px) saturate(145%);
+    box-shadow: 0 18px 56px rgba(0,25,101,0.16);
+}
+
+.premium-action {
+    min-width: 42px;
+    height: 42px;
+    border: 1px solid rgba(0,25,101,0.08);
+    background: rgba(255,255,255,0.78);
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.premium-progress {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 3px;
+    width: var(--read-progress, 0%);
+    background: linear-gradient(90deg, var(--primary), var(--accent-light));
+    z-index: 4000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .header {
+        min-height: 160px;
+    }
+
+    .main-container {
+        margin-top: 160px;
+    }
+
+    .sidebar {
+        top: 160px;
+        width: 100%;
+    }
+
+    .content {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 76px 16px 34px;
+    }
+
+    .ppcl-page-tools {
+        position: static;
+        justify-content: flex-end;
+        margin: -6px 0 14px;
+    }
+
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .detail-toolbar {
+        top: 170px;
+    }
+
+    .premium-floatbar {
+        right: 12px;
+        bottom: 12px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-top">
+        <div class="brand">
+            <div class="brand-icon">P</div>
+            <div class="brand-text">
+                <h1>NN-BU PPCL 命令查询工具</h1>
+                <p>Powers Process Control Language · 快速检索手册</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <span id="totalCount">共 127 个词条</span>
+            <span id="categoryTotal">共 10 个分类</span>
+        </div>
+    </div>
+    <div class="search-bar">
+        <div class="search-wrapper">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="searchInput" placeholder="输入命令、类别或关键字，例如 IF、GOTO、ALARM、.EQ.、PDL ..." autocomplete="off" />
+            <button id="clearSearch" type="button" onclick="clearSearchInput()" aria-label="清除搜索">×</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-container">
+    <aside class="sidebar" id="sidebar" aria-label="分类筛选"></aside>
+
+    <main class="content">
+        <div class="ppcl-page-tools">
+            <button class="ppcl-lang-toggle" id="pageLangToggle" type="button">EN / 中文</button>
+        </div>
+        <section id="resultsView">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount"></div>
+                <div class="view-hint">Enter 打开选中项 · Esc 返回或清空搜索</div>
+            </div>
+            <div class="results-grid" id="resultsGrid"></div>
+            <div class="no-results" id="noResults" style="display:none;">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <h3>未找到匹配的词条</h3>
+                <p>换一个关键字，或清除搜索条件再试。</p>
+            </div>
+        </section>
+
+        <section class="detail-view" id="detailView">
+            <div class="detail-toolbar">
+                <button class="detail-back" type="button" onclick="goBack()">← 返回列表</button>
+                <div class="detail-index" id="detailIndex"></div>
+            </div>
+            <div class="detail-card">
+                <div class="detail-card-header">
+                    <div class="detail-card-title" id="detailTitle"></div>
+                    <div class="detail-card-category" id="detailCategory"></div>
+                </div>
+                <div class="detail-card-body">
+                    <div class="detail-content" id="detailContent"></div>
+                    <div class="detail-nav">
+                        <button class="detail-nav-btn" type="button" id="prevBtn" onclick="navPrev()">← 上一条</button>
+                        <button class="detail-nav-btn" type="button" id="nextBtn" onclick="navNext()">下一条 →</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="footer">
+            PPCL 命令查询工具 · Powers Process Control Language 用户手册（中文版）· 离线版
+        </div>
+    </main>
+</div>
+<script>
+// Database
+const DB = [{"id": 0, "name": "Equal to（.EQ.）", "category": "关系运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif(value1.EQ.value 2) then… value 1\t这值表示一个数。\nvalue 2\t值被定义为模拟或数字值，局部变量或点名。\n用途\n比较两个值，确定是否第一个值等于第二个值。如果第一个值等于第二个值，比较结果为真。 Example\n500 C IF THE ROOM TEMP IS EQUAL TO 80,\n510 C THEN SET THE SET POINT TO 70.\n520 C\n530 IF (RMTEMP.EQ.80.0) THEN RMSET = 70.0\n注释\n某些点（主要是模拟输入）可以包括精确值。当比较全部数时，由于真实值不能与比较值完全匹配，结果可能是假。在用关系运算进行比较前，这是个知道点精度的好的方法。"}, {"id": 1, "name": "大于等于（.GE.）", "category": "关系运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (value1.GE.value2) then... value1,\t这值表示一个数。\nvalue2，\t值定义为模拟或数字值，局部变量或点名。\n用途\n比较两个值，确定是否第一个值大于等于第二个值。如果第一个值大于等于第二个值，比较结果为真。\nExample\n700 C IF THE ROOM TEMP IS GREATER THAN\n710 C OR EQUAL TO 80, THEN SET THE SET\n720 C POINT TO 70\n730 C\n740 IF (RMTEMP.GE.80.0) THEN RMSET = 70.0"}, {"id": 2, "name": "大于（.GT.）", "category": "关系运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (value1.GT.value2) then... value1,\t这值表示一个数。\nvalue2，\t值定义为模拟或数字值，局部变量或点名。\n用途\n比较两个值，确定是否第一个值大于第二个值。如果第一个值大于第二个值，比较结果为真。 Example\n250 C IF THE ROOM TEMP IS GREATER THAN\n260 C 80, THEN SET THE SET POINT TO 70\n270 C\n280 IF (RMTEMP.GT.80.0) THEN RMSET = 70.0"}, {"id": 3, "name": "小于等于（.LE.）", "category": "关系运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (value1.LE.value2) then... value1,\t这值表示一个数。\nvalue2，\t值定义为模拟或数字值，局部变量或点名。\n用途\n比较两个值，确定是否第一个值小于等于第二个值。如果第一个值小于等于第二个值，比较结果为真。\nExample\n300 C IF THE ROOM TEMP IS LESS THAN OR\n310 C EQUAL TO 80, THEN SET THE SET POINT\n320 C TO 70\n330 C\n340 IF (RMTEMP.LE.80.0) THEN RMSET = 70.0"}, {"id": 4, "name": "小于（.LT.）", "category": "关系运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (value1.LT.value2) then... value1,\t这值表示一个数。\nvalue2，\t值定义为模拟或数字值，局部变量或点名。\n用途\n比较两个值，确定是否第一个值小于第二个值。如果第一个值小于第二个值，比较结果为真。 Example\n900 C IF THE ROOM TEMP IS LESS THAN 80,\n910 C THEN SET THE SET POINT TO 70.\n920 C\n930 IF (RMTEMP.LT.80.0) THEN RMSET = 70.0"}, {"id": 5, "name": "不等于（.NE.）", "category": "关系运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (value1.NE.value2) then... value1,\t这值表示一个数。\nvalue2，\t值定义为模拟或数字值，局部变量或点名。\n用途\n比较两个值，确定是否第一个值不等于第二个值。如果第一个值不等于第二个值，比较结果为真。 Example\n600 C IF THE ROOM TEMP IS NOT EQUAL TO\n610 C 80, THEN SET THE SET POINT TO 70.\n620 C\n630 IF (RMTEMP.NE.80.0) THEN RMSET = 70.0"}, {"id": 6, "name": "逻辑运算", "category": "逻辑运算符", "content": "关系运算比较两个值和产生一个结果，逻辑运算比较两个条件。两个条件比较的结果被叫做条件。如果条件结果是真，一个指定的动作发生。如果结果为假，一个选择性动作被执行。在所给的关系运算例子中，你做如下陈述：\n\"如果温度高于 80°F，我将去海滩。”\n你可以想扩大你的陈述去重视你的工作计划。你可能期待做如下陈述： \"如果温度高于80°F并且我不必去工作，那就去海滩。”\n在第二个例子中，你确定了两个条件。第一个是否温度是否超过80°F。第二个条件是是否你必须工作。在这个例子中的决定因素是两个条件都必须是真。两个条件比较的结果决定行动。\n即使这是个好天气，你不能去海滩，因为你必须工作。这个例子示范了逻辑运算如何执行。\n逻辑运算也有优先等级。优先等级描述了运算和动作执行的次序。关于这的完整的讨论将在The Order of precedence部分描述。\nPPCL支持随后的逻辑运算：与（.AND.）\n与非（.NAND.）或（.OR.）\n异或（.XOR.）\n下面详细描述每个逻辑运算。"}, {"id": 7, "name": "与（.AND.）", "category": "逻辑运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (cond1.AND.cond2) then...\ncond1,\t定义两值之间比较的结果的条件 cond2,\n用途\t用来比较两个逻辑条件式。如果两个条件都是真的，比较的结果为真。参考表 2一1，用.AND.逻辑运算进行条件式的比较。\n表 2一1\t.AND.逻辑运算的真值表\nExample\n200 IF (TIME.LT.19:00.AND.TIME.GT.5:00) THEN ON(LIGHTS)\n注释\n一个语句可以包括 16 个关系和逻辑运算。"}, {"id": 8, "name": "与非（.NAND.）", "category": "逻辑运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (cond1.NAND.cond2) then...\ncond1,\t定义两值之间比较的结果的条件 cond2,\n用途\t用来比较两个逻辑条件式。参考表 2一2 和 2一3，用.NAND.逻辑运算进行条件式的比较。\n8.0 及以下版本的逻辑固件：\n表 2一2\t.NAND.逻辑运算的真值表\n9.1 和更高版本逻辑，物理，CM 和 APOGEE 固件：\n表 2一3\t.NAND.逻辑运算的真值表\nExample\n200 IF (TIME.LE.19:00.NAND.OCC.EQ.OFF) THEN OFF(LIGHTS)\n注释\n一个语句可以包括 16 个关系和逻辑运算。"}, {"id": 9, "name": "或（.OR.）", "category": "逻辑运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法 if (cond1.OR.cond2) then...\ncond1,\t定义两值之间比较的结果的条件 cond2,\n用途\t用来比较两个逻辑条件式。如果至少一个条件是真，结果为真。参考表 2一4，用.OR.逻辑运算进行条件式的比较：\n表 2一4\t.OR.逻辑运算的真值表\nExample\n200 IF (TIME.LT.5:00.OR.TIME.GT.17:00) THEN ON(LIGHTS)\n注释\n一个语句可以包括 16 个关系和逻辑运算。"}, {"id": 10, "name": "异或（.XOR.）", "category": "逻辑运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (cond1.XOR.cond2) then...\ncond1,\t定义两值之间比较的结果的条件 cond2,\n用途\t用来比较两个逻辑运算条件式。如果条件式 1 为真和条件式 2 为假，则结果为真。如果\n条件式 1 为假和条件式 2 为真，结果也为真。参考表 2一5，用.XOR.逻辑运算进行条件式的比较：表 2一4\t.XOR.逻辑运算的真值表\nExample\n200 IF (PMP1.EQ.ON.XOR.PMP2.EQ.ON) THEN NORMAL(PMPALM)\n注释\n一个语句可以包括 16 个关系和逻辑运算。"}, {"id": 11, "name": "算术运算符", "category": "算术运算符", "content": "算术运算是相关于算术的活动。它被两个或两个以上橾作数执行。在一个 PPCL 程序行中，你能指定最多 15 个算术运算符。在 PPCL 中使用算术运算符时，计算的值被确定派给一个为将来参考的点名或局部变量。\n算术运算符同样有优先级。优先级决定了计算和动作被执行的顺序。关于它的完整的讨论放在 the Order of precedence 部分。\nPPLC 支持随后的算术运算：加（+）\n赋值（＝）除（／）\n乘（＊）减（一）\n每种算术运算将在随后进行详细的描述。"}, {"id": 12, "name": "加", "category": "算术运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = value1 + value2\npt1\t接受计算的值的点名或局部变量。\nvalue1,\t在计算中能被使用的点名，局部变量，表达式或数字。 value2\n用途\t\t把两个或两个以上的值相加并把和存储进已定义的单元pt1 Example\n560 COUNT = COUNT + 1.0"}, {"id": 13, "name": "赋值", "category": "算术运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = value1\npt1\t接受计算的值的点名或局部变量\nvalue1,\t在计算中能被使用的点名，局部变量，表达式或数字。用途\t把value 1的值赋给pt1\n560 COUNT = COUNT + 1.0\n注释\t当赋值时，小心不要赋值给保留词。参考手册后面的保留词表 Example\n500 C = OATEMP\n这个例子中代码被错误的赋值给象变量的“C”，那代替做为注释说明行的区域面板。"}, {"id": 14, "name": "除", "category": "算术运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = value1 / value2\npt1\t接受计算的值的点名或局部变量\nvalue1,\t在计算中能被使用的点名，局部变量，表达式或数字。在PPCL中，value 1代\n表分子\nvalue2,\t在计算中能被使用的点名，局部变量，表达式或数字。在PPCL中，value 2代\n表分母\n用途\tvalue 1被value 2除，把商储存进一个定义的位置pt1。 Example\n890 AVERAG = TOTAL / 5.0"}, {"id": 15, "name": "乘", "category": "算术运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = value1 * value2\npt1\t接受计算的值的一个点名或局部变量\nvalue1,\t计算中所用的点名，局部变量，表达式或数字 value2,\n用途\t\t两个或两个以上值的乘（value1 和value 2），并把乘积值储存入定义的位置pt1中。 Example\n300 SETPT = TEMP * 0.00438"}, {"id": 16, "name": "减", "category": "算术运算符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = value1 - value2\npt1\t接受计算的值的一个点名或局部变量\nvalue1,\t计算中所用的点名，局部变量，表达式或数字 value2,\n用途\t\tvalue1减去value2，并存储差值进定义的位置pt1。 Example\n300 COUNT = COUNT - 1.0"}, {"id": 17, "name": "算术函数", "category": "算术函数", "content": "算术函数对一个值（或数）进行数学计算。在PPCL中，从计算中所得的值通常被赋值给一个点以备将来参考。\n算术函数也有优先等级。优先等级表现运算和动作执行的顺序。关于它的完整的讨论放在the Order of precedence部分讨论。\nPPCL支持如下算术函数：反正切（ATN）\n反数（COM）余弦（COS）\n自然逆对数（EXP）自然对数（LOG） 开方（.ROOT。） 正弦（SIN）\n平方根（SQRT）正切（TAN）\n下面对每个算术函数进行详细的描述。"}, {"id": 18, "name": "反正切（ATN）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\tpt1 = ATN(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算反正切中所用的点名，局部变量，或数字。所有值以角度表达。\n用途\t计算value 1的反正切的三角函数。值然后被存储进一个定义的位置（pt1）．这个函数所用的所有值用角度表达。\nExample\n500 THETA = ATN(VALUE1)"}, {"id": 19, "name": "反数", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = COM(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算反数中所用的点名，局部变量，或数字。\n用途\t计算一个点（value 1）的反数的函数。这个反数函数把数字值（0或1）转换成相反值。这个值被存储进一个定义的位置（pt1）。\nExample\n500 LLSTAT = COM(PROF01)"}, {"id": 20, "name": "余弦（COS）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\tpt1 = COS(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算余弦中所用的点名，局部变量，或数字。所有的值用角度表达。\n用途\t计算一个值（value 1）的余弦的三角函数。结果被存储进定义的位置（pt1）。此函数中所有被用值均用角度表达。\nExample\n700 C\n701 C THIS FORMULA COMPUTES REAL POWER\n702 C WHEN VOLTS, AMPS, AND PHASE ANGLE\n703 C ARE KNOWN.\n704 C\n706 PWR = V * I * COS(THETA)"}, {"id": 21, "name": "自然反对数（EXP）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tpt1 = EXP(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算自然反对数中所用的点名，局部变量，或数字。\n用途\t\t这个函数计算一个点（value 1）的自然反对数，存储结果在定义的位置（pt1）。 Example\n860 NATANT = EXP(VALUE1)"}, {"id": 22, "name": "自然对数（LOG）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = LOG(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算自然对数中所用的点名，局部变量，或数字。\n用途\t\t这个函数计算一个点（value 1）的自然对数。把结果存储进定义的位置（pt1）。 Example\n200 ENTH = LOG(VALUE1)"}, {"id": 23, "name": "开方（.ROOT.）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = (value1.ROOT.value2)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算开方中所用的点名，局部变量，或数字。 Value2\n用途\t这个函数计算定义点的根。值被存储进一个定义的位置（pt1）。开方的数学符号表示如下：\n3 TEMP\tsee page 57下面例子演示了一行PPCL程序码定义的与上同的值\nExample\n310 RVAL = (TEMP.ROOT.3.0)"}, {"id": 24, "name": "正弦（SIN）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\tpt1 = SIN(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算正弦中所用的点名，局部变量，或数字。所有值用角度表达。\n用途\t计算一个值（value 1）的正弦的三角函数。结果被存储在一个定义的位置（pt1）。这个函数中用的所有值用角度表达。\nExample\n180 VAR = SIN(THETA)"}, {"id": 25, "name": "平方根（SQRT）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tpt1 = SQRT(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算平方根中所用的点名，局部变量，或数字。\n用途\t计算值的平方根。通过平方根获得的值被存储在一个定义的位置（pt1）。\nExample\n180 SRPT1 = SQRT(PT1)"}, {"id": 26, "name": "正切（TAN）", "category": "算术函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\tpt1 = TAN(value1)\npt1\t接受计算的值的点名或局部变量\nvalue1,\t计算正切中所用的点名，局部变量，或数字。所有的值用角度表达。\n用途\t计算值（value 1）正切的三角函数。结果被存储在一个定义的位置（pt1）。这个函数所用的所有值都用角度表达。\nExample\n930 TANPT1 = TAN(PT1)"}, {"id": 27, "name": "特殊函数", "category": "特殊函数", "content": "特殊函数用于存取一个唯一的指定值到一个点。这个点的值能被检验或者赋给其它点。由于特殊函数由系统保持，所以它们不能由手动赋一个不同的值。特殊函数不能用于网络。\n特殊函数也有优先级。优先级表现了计算和动作被执行的顺序。关于它的完整的讨论放在the Order of precedence部分。\nPPCL支持随后特殊函数： Alarm priority (ALMPRI) Totalized value (TOTAL)\n每个特殊函数在下面做了详细的描述。"}, {"id": 28, "name": "ALMPRI 报警优先", "category": "特殊函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n12.0\n语法\tALMPRI（pt1）\npt1\t采用电流报警优先的点名。\n用途\t这个函数接入点的报警优先等级到一个加强的报警控制战略。ALMPRI的值能安排从1到6。除为一特定值检测ALMPRI外，你也可以赋ALMPRI值给另一个点。\nExample 1\n230 C\n232 C THIS LINE TESTS IF THE POINT CALLED\n234 C RMTEMP IS AT ALARM PRIORITY LEVEL 1.\n236 C\n240 IF (ALMPRI(RMTEMP).EQ.1) THEN ON (OPBELL)\nExample 2\n330 C\n332 C THIS LINE ASSIGNS THE ALARM\n334 C PRIORITY LEVEL OF RMTEMP TO THE\n336 C POINT CALLED TMPPRI.\n338 C\n340 TMPPRI = ALMPRI(RMTEMP)\n注释\tALMPRI必须作为函数被执行的点保留在同一区域板中。"}, {"id": 29, "name": "TOTAL", "category": "特殊函数", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tTOTAL（pt1）\npt1\t采用TOTAL值的点名。\n用途\t这个函数允许你接入一个点的TOTAL值。 Example 1\n800 C\n801 C THIS LINE COMPARES THE TOTALIZED\n802 C VALUE OF FAN1 TO DETERMINE IF IT IS\n803 C GREATER THAN 500. IF THE CONDITION\n804 C IS TRUE, FAN1 WILL BE PLACED INTO\n805 C ALARM.\n806 C\n810 IF(TOTAL(FAN1).GT.500.0)THEN ALARM(FAN1)\nExample 2\n800 C\n801 C THIS LINE ASSIGNS THE TOTALIZED\n802 C VALUE OF FAN1 TO THE POINT CALLED\n803 C FANRUN.\n804 C\n810 FANRUN = TOTAL(FAN1)\n注释\tTOTAL必须做为正在执行此函数的点保留在字段界面中。参考\tINITTO"}, {"id": 30, "name": "警报计数（ALMCNT）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tALMCNT\n用途\tALMCNT的值表示一个区域板或单元控制器内现在在报警状态的点的数目。当设备内一点进入 ALARM状态时，计算机在ALMCNT值上加1。当一个点反回到正常状态，区域板从ALMCNT值减去1。\nExample\n340 IF (ALMCNT.GT.0) THEN ON(ALARM7)\n为了当点进入报警状态时能够计算，点必须被定义为可报警。在所有区域板固件的所有版本中，当它们做有规则的警报时，ALMCNT和ALMCT2计数器工作与加强报警相同。\n点的特定的警报级别不影响ALMCNT和ALMCT2。当一个增强的警报点从一个警报等级变为另一警报等级时，这些计数器不能增加。\n如果点损坏（＊PDSB＊）或者运算损坏（＊ODSB＊），ALMCNT将因此增减。参考\tALMCT2，ENALM，DISALM"}, {"id": 31, "name": "十进制时间（CRTIME）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tCRTIME\n用途\t这个保留点保持现在时间并用十进制形式保存这个值。CRTIME如何存储值的例子如下： 7:15 a.m. = 7.25\n7:30 p.m. = 19.50\n这个点的值范围从0.00到23.999721。\nExample\n500 C\n501 C THIS CODE DEFINES A TIME PERIOD\n502 C FROM 6:45 A.M. TO 5:30 P.M. FOR\n503 C SFAN TO OPERATE.\n504 C\n510 IF (CRTIME.GE.6.75.AND.CRTIME.LE.17.50) THEN ON(SFAN)ELSE OFF(SFAN)\nCRTIME也能被用来把现在的时间值赋给虚拟的LAO型点。虚拟的LAO型点允许你按图表，点记录读取现在时间。如：\n100 VTIME = CRTIME\n注释\tCRTIME每秒更新一次。"}, {"id": 32, "name": "警报计数2（ALMCT2）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\tALMCT2\n用途  这个保留点与ALMCNT点相似。ALMCT2规定当一个点进入报警状态时第二个报警计数器是否增加。当设备中一个点进入报警状态，计算机在ALMCNT和ALMCT2两个值上都增加1。当这个点返回到正常状态，字段界面把两个值都减1。\nExample\n300 C IF THE SECOND LEVEL ALARM COUNTER\n310 C BECOMES GREATER THAN 5, COMMAND ON\n320 C ALARM8\n330 C\n340 IF (ALMCT2.GT.5) THEN ON(ALARM8)\n为了当点进入报警状态时能够计算，点必须被定义为可报警。在所有字段界面固件的所有版本中，当它们做有规则的警报时，ALMCNT和ALMCT2计数器工作与加强报警相同。\n点的特定的警报级别不影响ALMCNT和ALMCT2。当一个增强的警报点从一个警报等级变为另一警报等级时，这些计数器不能增加。\n参考\tALMCNT，ENALM，DISALM"}, {"id": 33, "name": "电池状态（$BATT）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\t$BATT\n用途\t字段界面有能力监控备用电池的能量，这个保留点允许你去读取这种状态。$BATT的状态能用数字值来校验。这种状态也可以通过备用电池状态指示灯来校验。\n校验因此被执行：\n用数字值校验$BATT（0,50或100）。如果$BATT值等于0，则电池失效，需要更换电池。如果它等于100，电池不需要被更换。值50意味着电池将要失效，为防止数据丢失应该更换。\n用状态指示灯（OK，LOW，或DEAD）指示灯来校验。如果状态是LOW或DEAD，电池已失效，需要更换。如果状态等于OK，电池不需要更换。\nExample 1\n200 IF ($BATT.EQ.0) THEN ALARM(P26BAT)\nExample 2\n210 IF ($BATT.EQ.DEAD) THEN ALARM(P26BAT)\n参考\tLOW，DEAD，OK"}, {"id": 34, "name": "日期（DAY）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDAY\n用途\t这个保留点指定了本周的现在日期。DAY点值如下：\nExample\n300 IF (DAY.EQ.1) THEN TOTRAN = 0\n注释\t这些值用在TODMOD状态的模式无关。"}, {"id": 35, "name": "月份中的日期（DAYOFM）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDAYOFM\n用途\t这个保留点指定了任何月份的一个特定日期。这个点的值与月里指定日期的数字表示相对应。 DAYOFM点有效值从1到31。\nExample\n160 C THIS SECTION OF CODE DETERMINES IF\n162 C IT IS THE FIRST DAY OF THE MONTH.\n164 C IF SO, SET TOTMON TO 0.\n166 C\n180 IF (DAYOFM.EQ.1) THEN TOTMON = 0\n这个点有助于你在一特定日期执行特定的橾作（如，在每月第一天生成一份报告）。"}, {"id": 36, "name": "通信连接（LINK）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tLINK\n用途\t\t这个保留点显示了通信状态。依靠通信连接状态，点包含下面值中的一个： 0一LINK点保留的不能和网络通信的节点。\n1一LINK点保留的能和网络通信的节点。 Example\n300 IF (LINK.EQ.0) THEN ON(ALARM)\n参考\tNode Number"}, {"id": 37, "name": "月（MONTH）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tMONTH\n用途\t这个保留点指定了现在的月份。MONTH点的值如下：\nExample\n950 IF (MONTH.GE.4.AND.MONTH.LE.10) THEN SEASON = 1 ELSE SEASON = 0"}, {"id": 38, "name": "节点号（NODE0到NODE99）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tNODEn\nn表示NODE号。NODE保留点允许的节点号从0一99。\n用途\t这个保留点允许程序检查节点在网络中的节点状态。网络上所有设备和CPU均对应于地址占据一个节点。这个点通常用于依赖网络通信的控制战略校验节点的正常橾作。\nExample\n600 IF (NODE22.EQ.FAILED) THEN ON(ALARM)\n注释\t为＼型计算机检查可视的橾作，节点号从0一99。参考\tCommunications Link"}, {"id": 39, "name": "PDL监控器（$PDL）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\t$PDL\n用途\t这个保留点表现要求预计值，为每次通过PDLMTR语句做成的计算间隔时间。这个点能被派给一个虚拟的LAO点，显示和趋势。\nExample\n350 KWH = $PDL"}, {"id": 40, "name": "第二计数器（SECONDS）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tSECONDS\n用途\t这个保留点计算真实时间秒，能被做为一个定时器使用。每真实的通过一秒，计算机在SECONDS变量上加1。SECONDS点的初始值通过一个PPCL命令设置。SECONDS点能设置的最大值是9,999。\nExample\n890 IF (SFAN.NE.PRFON) THEN SECNDS = 0\n注释\t对于APOGEE field panels，每个程序在一个唯一的SECONDS点。这个点也能在使用的程序名的界面中看到，系统符（：）SECONDS格式。"}, {"id": 41, "name": "每二计数器（SECOND1到SECOND7）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tSECNDn\nn\t描述被执行的SECNDn点的序号。有效值从1到7。\n用途\t这七个保留点计算真实时间秒，能被用做定时器。每通过一秒时间，计算机在SECNDn上加1。这个点的值仅仅能被PPCL命令设置。它的最大值是9,999。\nExample\n600 IF(SECND1.GT.15) THEN ON(RF) ELSE OFF(RF)\n注释\t对于APOGEE字段界面，每个程序在一个唯一的SECNDSn点。这个点也能在使用的程序名的界面中看到，系统符（：）SECONDS格式。"}, {"id": 42, "name": "24小时制时间（TIME）", "category": "保留点", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tTIME\n用途\t这个保留点维持现在的时间和存储这个时间值在24小时制时间里。这个时间值从一0：00到23： 59。TIME如何存储值的例子如下：\n7:15 a.m. = 7:15\n7:30 p.m. = 19:30\nExample\n500 C\n501 C THIS CODE DEFINES A TIME PERIOD\n502 C FROM 6:45 A.M. TO 5:30 P.M. FOR\n503 C SFAN TO OPERATE.\n502 C\n510 IF(TIME.GE.6:45.AND.TIME.LE.17:30)THEN ON(SFAN)ELSE OFF(SFAN)\n注释\t这个时间每秒钟更新一次。由于这个值不是一个标准的十进制形式，TIME不能被赋值给虚拟点。CRTIME将被用于这个目的。在IF/THEN/ELSE语句中，TIME能被用于PPCL中的比较。"}, {"id": 43, "name": "局部变量", "category": "局部变量", "content": "局部变量是数据的存储单元。局部变量功能很像虚拟点，除了局部变量需要更少的内存，要被预定义，并且不能直接显示出来。局部变量可以包括模拟或数字值。\n每组局部变量被设计用于特殊的任务。局部变量被分为两类：子程序变量和全局存储变量。 PPCL支持随后局部变量：\n$ARG1一$ARG15\n$LOC1一$LOC15\nLOCAL（在APOGEE字段界面中用户定义的局部变量，将在第4章一语法中讨论）\n对于APOGEE字段界面，每个程序有唯一的$ARG和$LOC变量。$LOC点也能通过使用程序名界面，系统定界符（：），局部变量名格式被查验和橾作。\n每个局部变量都将在随后做更详细的描述。"}, {"id": 44, "name": "$ARG1一$ARG15", "category": "局部变量", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\t$ARGn\nn\t描述被运用的什么$ARGn点号。有效值从1到15。\n用途\t一个$ARGn变量代表一个子程序中使用的真实点名。值代替子程序中定义的真实点名被转移给\n$ARGn变量。$ARGn变量代表他们相应的在子程序中被执行的函数和运算的点。$ARGn变量的值改变时，相应的点的值也被更新。\n当$ARGn变量在程序的子程序部分相冲突时，计算机检查所引入的GOSUB命令做为一个变量点名。下面例子说明这个原理：\n1000 GOSUB 2000 OATEMP, RMTEMP, SETPT\n这个程序转移到行号2000。当计算机在程序中与$ARG1冲突时，计算机赋这个变量点名（OATEMP）值给$ARG1。当计算机与$ARG2冲突时，它在GOSUB命令中赋下一个变量点做为定义。\n本例中，按以下来赋值： OATEMP值＝$ARG1 RMTEMP值＝$ARG2\nSETPT值＝$ARG3\n注释\t$ARGn点仅仅能被用于子程序。更多信息参考GOSUB命令。"}, {"id": 45, "name": "$LOC1一$LOC15", "category": "局部变量", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\t$LOCn\nn\t描述被引用的哪个$LOCn被引用的号。有效值从1到15。\n用途\t这些点被用于存储计算的结果。$LOCn变量能存储一个模拟或数字值，并且被用于整个程序。一个$LOC点能被存储的最大值是32767。如果你需要存储更大的值，使用虚拟的LPACI或LAO点。如果你正在使用的是APOGEE固件，你可以考虑通过LOCAL语句创建一个局部变量。\nExample 1\n200 MIN ($LOC1,PT1,PT2,PT3)\nExample 2\n100 $LOC7 = (50/VALUE1+10.0) * 2.0\n注释\t在APOGEE字段界面，局部点能被存储的值大于32，767（大到10，000，000）。"}, {"id": 46, "name": "At(@)优先指示器", "category": "优先指示器", "content": "被用来监控设备中定义的点的优先状况。它能被用于执行测试是否一个点是指定的优先级。它也能被用于指定一个点做为指定的优先级。\nPPCL支持下面@优先指示器：紧急（@EMER） PPCL（@NONE）\nOperator（@OPER） 需要限制峰值（@PDL）烟雾（@SMOKE）\n当PPCL语句中使用@优先指示符时，你在语句中定义的优先级占据一个参数。在用ON，OFF，RELEAS， SET的语句允许你在语句中定义最多16个参数。当你在一个PPCL语句中加入@优先指示符时，指示符占据第一个参数位置。你能定义的点的总数然后增加到15。当@优先不被使用，默认EMER优先。\n第个@优先指示符在随后做更加详细的描述。"}, {"id": 47, "name": "Peak Demand Limiting(@PDL)", "category": "优先指示器", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\t@PDL\n用途\t\t这个命令标识了峰值需求极限优先等级符。@PDL命令应用于随后典型的情况下：测试是否一个点现在在PDL优先状态，IF/THEN/ELSE语句如随后所示：\n300 IF (SFAN.EQ.@PDL) THEN ON(HORN)\n释放设备中的一个点从PDL优先到PPCL优先。程序代码的例子如下所示：\n700 RELEAS(@PDL,SFAN)\n如果一个点有较高的优先（如EMER，SMOKE和OPER），在这种方式下用@优先符不会释放这个点。注释\t如果不是绝对需要，不推荐从PDL优先释放点。\n对于逻辑固件9.2及以上版本，CM和APOGEE固件，如果@优先符不被指定，字段界面将从PDL向NONE释放点。"}, {"id": 48, "name": "Smoke(@SMOKE)", "category": "优先指示器", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\t@SMOKE\n用途\t\t这个命令指定了smoke控制优先级的符。@SMOKE命令典型的应用于如下情况之一：测试是否一个点现在在smoke优先，IF/THEN/ELSE语句例子如下：\n300 IF (SFAN.EQ.@SMOKE) THEN ON(HORN)\n在设备中释放一个点从smoke到PPCL优先，程序代码的例子如下：\n700 RELEAS(@SMOKE,SFAN)\n如果这个点有更高的优先（OPER），在这种方式下用@优先符将不会释放这个点。\n注释\t对于逻辑固件9.2及以上版本，CM和APOGEE固件来说，@优先符必须被指定来释放点从SMOKE， EMER，PDL到NONE优先。"}, {"id": 49, "name": "点状态符", "category": "点状态符", "content": "点状态符用来监控设备中定义的点的现在的状态。点状态符能被用来执行测试一个点是否在指定的状态，然后动作。由于这些点与设备的运行相关，你不能越过网络使用这些点。\nPPCL支持随后点的状态符 Alarm(ALARM)\nAlarm acknowledge(ALMACK) Auto(AUTO)\nBattery status-discharged(DEAD) Battery status-almost discharged(LOW) Battery status-charged(OK)\nDay mode(DAYMOD) Failed(FAILED) Fast(FAST)\nManual override(HAND) Night mode(NGTMOD) Off(OFF)\nOn(ON)\nProof on(PRFON) Slow(SLOW)\n每个点状态符将在随后页做详细的描述。"}, {"id": 50, "name": "Alarm(ALARM)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.ALARM) then...\npt1\t运动状态被用状态符来表达的点名。这个点可以是数字，模拟，逻辑控制器或者脉冲累加器等点的类型。\n用途\t这个状态符确定是否这个点（pt1）是在ALARM状态。如果这个点在ALARM状态，结果为真。 Example\n200 IF (TEMP02.EQ.ALARM) THEN ON(FAN)"}, {"id": 51, "name": "Alarm acknowledge(ALMACK)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.ALMACK) then...\npt1\t能被用于警报确认的点名。\n用途\t用这个符号去把一个点的运行状态与警报确认状态符比较。如果这个点的警报状态已经被 operator确认，结果为真。\nExample\n200 IF (FAN.EQ.ALMACK) THEN ..."}, {"id": 52, "name": "Auto(AUTO)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.AUTO) then...\npt1\t运行状态与状态符比较的点。这个点必须是LOOAP或LOOAL点型。\n用途\t这个点的状态比较点的运行状态给AUTO状态符。如果点是在AUTO状态，则比较结果为真。 Example\n200 IF (HOAFAN.EQ.AUTO) THEN ON(LIGHT3)"}, {"id": 53, "name": "Battery status – discharged(DEAD)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif ($BATT.eq.DEAD) then...\n用途\t这个符号比较$BATT保留点的值来决定是否备用电池已经无电。如果电池没电比较结果为真。这个指令仅仅能被于有能力监控后备电池能量的字段界面。\nExample\n600 IF ($BATT.EQ.DEAD) THEN ALARM(P26BAT)\n测试电池能量的一个可代替的方法是用DEAD的数字值（0） Example\n600 IF ($BATT.EQ.0) THEN ALARM(P26BAT)\n参考\tLOW，OK"}, {"id": 54, "name": "Battery status – almost discharged(LOW)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif ($BATT.eq.LOW) then...\n用途\t这个符号比较$BATT保留点的值来决定是否备用电池将要没电。如果这个电池快没电了，比较结果为真。这个指令仅仅被用于有能力监控后备电池能量的字段界面。\nExample\n600 IF ($BATT.EQ.LOW) THEN ALARM(P26BAT)\n测试电池能量的一个可替代的方法是用LOW的数字值（50） Example\n600 IF ($BATT.EQ.50) THEN ALARM(P26BAT)\n参考\tDEAD，OK\n\n\n语法\tif ($BATT.eq.OK) then...\n用途\t这个符号比较$BATT保留点的值来决定是否备用电池将有电。如果这个电池有电了，比较结果为真。这个指令仅仅被用于有能力监控后备电池能量的字段界面。\nExample\n600 IF ($BATT.EQ.OK) THEN NORMAL(P26BAT)\n测试电池能量的一个可替代的方法是用OK的数字值（100）。 Example\n600 IF ($BATT.EQ.100) THEN ALARM(P26BAT)\n参考\tDEAD，LOW"}, {"id": 55, "name": "Day mode(DAYMOD)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.1\n语法\tif (pt1.eq.DAYMOD) then...\npt1\t运动状态与状态符比较的点名。这个点必须被定义为LCTLR点型。\n用途\t这个状态符决定是否设备控制器在DAY模式下。对于一些设备控制器来说，DAY模式也被规类为OCC（占用）模式。如果设备控制器在OCC模式，PPCL识别这个状态做为DAYMOD。\nExample\n200 IF (CTLR1.EQ.DAYMOD) THEN DAYSP = 75.0\n注释\t这个点仅仅对于设备控制器有效，并且仅仅在用LCTLR或LTCU点型时有效。"}, {"id": 56, "name": "Failed(FAILED)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.FAILED) then...\npt1\t运动状态与状态符比较的点名。这个点可以是数字，模拟，逻辑控制器或者脉冲累加器等点型。\n用途\t这个状态符用于比较点的运动状态和FAILED状态符。如果点在FAILED状态，结果为真。 Example\n200 IF (AHU2.EQ.FAILED) THEN ON(HORN)"}, {"id": 57, "name": "Fast(FAST)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.FAST) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被定义为LFSSL或LFSSP点型。用途\t这个符号用于比较一个点的运动状态和FAST状态符。如果这个点在FAST状态，结果为真。\nExample\n200 IF (FAN.EQ.FAST) THEN DAMPER = 8.0"}, {"id": 58, "name": "Manual override(HAND)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.HAND) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被用手动超越控制开关终止于PTM（Point Termination Module）。\n用途\t这个符号用于比较一个点名的运动状态和HAND状态符。如果PTM现在通过PTM手动超越开关的使用来控制，结果为真。\nExample\n200 IF (FAN.EQ.HAND) THEN OADAMP = 8.0"}, {"id": 59, "name": "Night mode(NGTMOD)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.1\n语法\tif (pt1.eq.NGTMOD) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被定义为LCTLR点型。\n用途\t这个状态符决定是否设备控制器在NIGHT模式下。对于一些设备控制器来说，NIGHT模式也被归类为UNOCC（未被占用）模式。如果设备控制器在未被占用模式下，PPCL识别这种状态为NGTMOD。\nExample\n200 IF (CNTRL1.EQ.NGTMOD) THEN NGTSP = 78.0\n注释\t这个点仅仅对于设备控制器有效，并且仅仅当被用于LCTLR和LTCU点型时有效。"}, {"id": 60, "name": "Off(OFF)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.OFF) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被定义为LDI，LDO，L2SP，L2SL， LOOAL，LOOAP，LFSSL或LFSSP点型。\n用途\t这个符号被用于比较一个点名的运动状态和OFF状态符。如果点是在OFF状态，则结果为真。 Example\n200 IF (FAN.EQ.OFF) THEN RTDAMP = 3.0"}, {"id": 61, "name": "On(ON)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.ON) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被定义为LDI，LDO，L2SP，L2SL，LOOAL， LOOAP点型。\n用途\t这个符号被用于比较一个点名的运动状态和ON状态符。如果点是在ON状态，则结果为真。 Example\n200 IF (FAN.EQ.ON) THEN RTDAMP = 3.0"}, {"id": 62, "name": "Proof on(PRFON)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.PRFON) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被定义为L2SP，L2SL，LOOAL， LOOAP点型。\n用途\t这个符号用来比较一个点的运算状态和PRFON状态符。如果对于这个点的证明是在ON状态，结果为真。\nExample\n200 IF (FAN.EQ.PRFON) THEN OADAMP = 8.5"}, {"id": 63, "name": "Slow(SLOW)", "category": "点状态符", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tif (pt1.eq.SLOW) then...\npt1\t与状态符比较的运动状态的点名。这个点必须被定义为LFSSL，LFSSP点型。 用途\t这个符号用来比较一个点的运动状态和SLOW状态符。如果这个点是在SLOW状态，结果为真。\nExample\n200 IF (FAN.EQ.SLOW) THEN DAMPER = 13.0第4章语法"}, {"id": 64, "name": "紧急情况（@EMER）", "category": "优先指示器", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\t@EMER\n用途\t这个命令确定了紧急情况优先等级指示符。@EMER命令典型应用于随后之一的情况下：测试一个点是否现在在紧急情况优先，如下面IF/THEN/ELSE语句：\n300 IF (SFAN.EQ.@EMER) THEN ON(HORN)\n命令一个点在紧急情况优先，程序码可能像下面例子：\n500 ON(@EMER,SFAN)\n在设备中释放一个点从紧急状况到PPCL优先，程序码的例子可能如下：\n700 RELEAS(@EMER,SFAN)\n在这种方式下，如果@优先指示符有更高的优先级（SMOKE或OPER），它将不会释放这个点。注释\t对于逻辑固件9.2及以上版本，CM和APOGEE固件来说，如果@优先指示符不被指定，这个字段界面将释放点从PDL或EMER优先到NONE。"}, {"id": 65, "name": "PPCL（@NONE）", "category": "优先指示器", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.2\n语法\t@NONE\n用途\t这个命令标识了PPCL优先等级指示符。@NONE命令能被用于测试是否一个点现在是在PPCL优先。IF/THEN/ELSE语句例子如下：\n300 IF (SFAN.EQ.@NONE) THEN OFF(HORN)\n运算符（@OPER）语法\t@OPER\n用途\t\t这个命令标识了这个运算符优先等级指示符。@OPER命令典型的用于随后情况之一：测试是否一个点现在在运算优先级。IF/THEN/ELSE语句如随后所示：\n300 IF (SFAN.EQ.@OPER) THEN ON(HORN)\n命令一个点为运算符优先，这样的程序码例子如下：\n500 ON(@OPER,SFAN)\n释放一个点从运算符到PPCL优先，这样的程序码例子如下：\n700 RELEAS(@OPER,SFAN)\n注释\t对于逻辑固件9.2及以上版本，CM和APOGEE固件来说，@优先符必须被指定来任何优先的点到 NONE状态。"}, {"id": 66, "name": "ACT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tACT(line1,...,line16)\nline1 through line16\t在同一设备内做为控制命令的有效行号命令。你必须键入整数行号，它从1一32,767。\n用途\t这个命令激活从 1 到 16 行的 PPCL 码，如此它们能被检验和执行。ACT 仅仅恢复在命令中被特别定义的PPCL 行。ACT 命令不能定义一个 PPCL 行系列。\nExample\n100 IF (TIME.GT.8:00.AND.TIME.LT.17:00) THEN ACT(120) ELSE DEACT(120)"}, {"id": 67, "name": "ALARM", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tALARM(pt1,...,pt16)\npt1 through pt16\t被警告的点名。它们必须在同一设备内，它们不能是局部变量。用途\t这个命令强迫一个点进入报警状态。在一行内最多能放 16 个点在报警状态。\nExample\n100 IF (ROOM.GT.80.0) THEN ALARM(ROOM25)\n注释\t当一个点被控制到报警状态时，状态＊AC＊被显示。\n点必须被定义为能够报警并激活报警，为了被放在报警命令状态。参考\tDISALM，ENALM，HLIMIT，LLIMIT，NORMAL"}, {"id": 68, "name": "AUTO", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tAUTO(pt1,...,pt16)\npt1 through pt16\t通过类型点的LOOAL或LOOAP点名。\n用途\t这个命令设置 ON/OFF/AUTO 点到 AUTO 位置。它仅仅能被用于 LOOAL 或 LOOAP 点。一个命令最多能改变 16 个点。\nExample\n100 AUTO(EFAN1,EFAN2,EFAN3)\n参考\tFAST，OFF，ON，SLOW"}, {"id": 69, "name": "DAY", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDAY(pt1,...,pt16)\npt1 through pt16\t通过（LCTLR）点的逻辑控制器点名。\n用途\t这个命令改变逻辑控制器点为 DAY 模式。逻辑控制器点型能被命令进 DAY 或 NIGHT 模式。 Example\n100 IF (TIME.LT.7:00.OR.TIME.GT.18:00) THEN NIGHT(LCTLR2) ELSE DAY(LCTLR2)\n对于一些设备控制器，DAY 模式也被归类为 OCC 模式。如果设备控制器是在 OCC 模式，PPCL 认为这个状态是DAY。\n参考\tNIGHT"}, {"id": 70, "name": "DBSWIT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\t\tDBSWIT(type,input,low,high,pt1,...,pt12) type 无控制作用区开关动作类型。有效值是 0 和 1。\n0＝当输入点值超过高限时，所有输出点（pt1,…,pt12）被控制为 ON。当所有输出点低于低限时，所有输出点被控制为 OFF。\n1＝当输入点值下降到低限以下，所有输出点被控制为 ON，当输入点值升高超过高限时，所有输出点被控制为 OFF。\nInput\t模拟点的点名。它也可以是局部变量。\nLow\t表示开关动作发生的低温。这个参数能包含一个十进制或整数值。这个参数也能被定义为点名，局部变量或者数值。\nHigh\t表示开关动作发生的高温。这个参数能包括十进制或整数值。这个参数能被定义为点名，局部变量或数值。\npt1 through pt12\t旋转到ON和OFF的点名。局部变量可能被用。\n用途\t这个命令被用于获得一个输出点的 ON/OFF 开关动作。这个点的运行状态被一个使用无控制作用区的模拟点调节。这是个相当于一个恒温室的软件。\nExample 1\n200 DBSWIT(1,RMTEMP,LDBAND,HDBAND,SFAN, RFAN)\nExample 2\n200 DBSWIT(1,RMTEMP,55,58,SFAN,RFAN)"}, {"id": 71, "name": "DC", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDC(pt1,pat1,...,pt8,pat8)\npt1 through pt8\n输出点到 DC 的点名。能接受的点类型是 LDO，LOOAL，LOOAP，L2SL 和 L2SP。局部，虚拟和实际点对于pt1,pt2,pt3 和 pt4 有效，虽然虚拟和实际点指定的类型。\npat1 through pat8\n描述每个点如何是 DC 的每小时的样式。每个样式由 0一7 之间的四个码数组成。每个数字代表每小时内 15 分钟的ON/OFF 样式。表 4-1 列出每 15 分钟间隔的码数。有效值包括局部，实际和虚拟点，也可是整数。\n表 4-1 DC 样式和数字代码\n用途  这个命令被用于通过减少特大型设备的运行时间节省能源。一个小时的间隔时间被分割成四个 15 分钟的段。每段被分成三个 5 分钟的格式。格式内的 ON 和 OFF 命令由数字码表示。表 4-1列出了数字码和它们的 ON/OFF 格式。在格式被定义后，码数被逆序插入。参考下面例子。\n1000 C THIS DC COMMAND DUTY CYCLES EFAN1\n1010 C ACCORDING TO THE FOLLOWING SCHEDULE:\n1020 C\n1030 C FIRST 15 MINUTES - OFF, OFF, OFF (0)\n1040 C SECOND 15 MINUTES - ON, OFF, ON (5)\n1050 C THIRD 15 MINUTES - OFF, ON, ON (3)\n1060 C FOURTH 15 MINUTES - OFF, OFF, ON (1)\n1070 DC(EFAN1,1350)\n码数和格式由5 分钟时间间隔从右向左读取时间来计算。第一个15 分钟格式由最右的码数字决定。\n最后一个 15 分钟格式由最左的码数字决定。\n注释\tDC 命令有 NONE 的优先。因此，PPCL 程序必须由 IF/THEN/ELSE 命令组织来防止 DC 和其它同\n一优先命令的冲突。参考\tDCR"}, {"id": 72, "name": "DCR", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDCR(pt1,temp1,high1,low1,...,pt4,temp4,high4,low4)\npt1 through pt4\t输出点给DC的点名。这个命令允许的点类型是LDO，逻辑，实际和虚拟。虚拟和实际类型必须是被指定的类型。\ntemp1 through temp4\t空间温度点的点名。\nhigh1 through high4\t空间点的高温极限。为这个参数输入的任何数字可能是＼数，整数，点名或者局部变量。\nlow1 through low4\t空间点的低温极限。任何为这个参数输入的任何数字可能是＼数，整数，点名或者局部变量。\n用途  这个命令循环运行一个输出点以保持定义了低和高值的无控制作用区相应的温度。这个指令允许你最多四个点（pt1-pt4）。对于每个点，你必须定义一个 temp, high, low 参数。每 5 分钟根据参数值做出 ON/OFF 决定。当温度点高于高温限制或者低于低温限制，输出点是 ON。当点值在高限和低限之间，它被控制为 OFF。\nExample\n200 C THIS COMMAND WILL TURN ON IF\n210 C SFAN'S VALUE FALLS BELOW 68 OR\n220 C RISES ABOVE 78. THE POINT SFAN01\n230 C WILL REMAIN ON/OFF FOR AT LEAST 5\n240 C MINUTES ON EACH CYCLE.\n250 DCR(SFAN01,RM109,78.0,68.0)\n注释 DC 命令有 NONE 优先。因此，PPCL 程序必须用IF/THEN/ELSE 命令组织以防止 DCR 和其它同一优先命令之间的冲突。\n参考  DC"}, {"id": 73, "name": "DEACT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDEACT(line1,...,line16)\nline1 through line16\t命令的有效行号，做为控制命令保留在同一设备。数字必须被键入为从1一32,767的整数。\n用途\t这个命令允许你中止一个最大 16 行的 PPCL，阻止它们被验证或执行。DEACT 仅仅禁止命令中指定的 PPCL 行。DEACT 命令不能用于指定一系列PPCL 行。\nExample\n100 IF (TIME.GT.8:00.AND.TIME.LE.17:00) THEN ACT(120,130) ELSE DEACT(120,130)\n注释\tDEACT 命令对于程序保存设备仅仅影响 PPCL 程序行。参考\tACT，DISABL，ENABLE"}, {"id": 74, "name": "DEFINE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDEFINE(abbrev,string)\nabbrev\t用于其它 PPCL 语句的文字串，表示串参数。\nString\t在缩写被用的地方，实际文字串将被替代。串文字通常包含长点名的有效部分。用途\t这个语句为长点名创建一个缩写名。当用在这个程序时，在缩写的前后必须放百分符（％）。\nExample\n10 DEFINE(AHU,”BUILDING1.AHU01.”)\n20 ON(“%AHU%SFAN”)\n没有用 DEFINE，同一行码如下：\n20 ON(“BUILDING1.AHU01.SFAN”)\n注释\t\t当添加到字段界面并且在正常程序流中不要求启用或者执行时，这个语句被执行。 DEFINE 让程序逻辑很容易被复制给\t＊＊＊"}, {"id": 75, "name": "DISABL", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDISABL(line1,...,line16)\nline1 through line16\t在同一设备内保留的做为控制命令的有效的命令行号。这个数字必须被键入为从1一32,767的整数。\n用途\t这个命令允许你禁止最多 16 行的 PPCL 程序，防止它们被检验或执行。DISABL 仅仅禁止在命令中特别指定的 PPCL 行。你不能用 DISABL 命令来定义一个 PPCL 行系列。\nExample\n100 IF (TIME.GT.8:00.AND.TIME.LE.17:00) THEN ENABLE(120,130) ELSE DISABL (120,130)\n注释\tDEACT 和 DISABL 命令可以交换使用。\n程序保存设备，DISABL 命令仅仅影响 PPCL 程序行。参考\tACT，DEACT，ENABLE"}, {"id": 76, "name": "DISALM", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDISALM(pt1,...,pt16)\npt1 through pt16\t警报报告被禁用的点名\n用途\t这个命令对特定点禁止警报打印能力。一个命令最多能激活 16 个点。在它被 DISALMed 后，点状态改变为＊PDSB＊。\nExample\n50 IF (SFAN.EQ.OFF) THEN DISALM(ROOM1) ELSE ENALM(ROOM1)\n注释\t这个命令不能被用于不属于控制程序被写的设备中的点。DISALM 不能直接被用于网络上禁止警报报告。\n参考\tALARM，ENALM，HLIMIT，LLIMIT，NORMAL"}, {"id": 77, "name": "DISCOV", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tDISCOV(pt1,...,pt16)\npt1 through pt16\tCOV报告被禁止的点名。单个DISCOV命令最多能控制16个点。用途\t这个命令被设备用于停止更新值（COVs）的报告直至 Protocol 1 主干上的微机。在 Protocol 2 主干上，仅仅如果微机被定义为结点 100，COVs 的报告将被停止。当这个命令被执行，用 COVs 橾作去执行的所有橾作都将停止。直至在这个命令中被定义的点被激活，更新图表，归档，COV 打印，报警，在一些案例中对方程进行计算等将停止。在这个语句中被定义的点必须保留在与 DISCOV 命令相同的设备内。\nExample\n50 IF (SFAN.EQ.OFF) THEN DISCOV(ROOM1, ROOM2) ELSE ENCOV(ROOM1,ROOM2)\n参考\tENCOV"}, {"id": 78, "name": "DPHONE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.1\t2.1\n语法\tDPHONE(pn#1,...,pn#16)\npn#1 through pn#16\t在设备中被定义的电话ID号。\n用途\t这个命令禁止电话 ID 号。电话 ID 号表示在设备中定义的给予实际电话号码的数字码。用 DPHONE 命令你能禁用最多 16 个电话号码 IDs。\nExample\n532 DPHONE(1,2,3,5,6)\n注释\tDPHONE 命令不能被用于网络外。参考\tEPHONE"}, {"id": 79, "name": "EMAUTO", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tEMAUTO(pt1,...,pt16)\npt1 through pt16\tLOOAL或LOOAP点的点名\n用途\t这个命令被用于用紧急优先改变 ON/OFF/AUTO 点到 AUTO（局部控制）状态。你能控制最多 16个 LOOAP 或 LOOAL 点。\n参考\tEMFAST，EMOFF，EMON，EMSET，EMSLOW"}, {"id": 80, "name": "EMFAST", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tEMFAST(pt1,...,pt16)\npt1 through pt16\tLFSSL或LFSSP点的点名。\n用途\t这个命令被用于用紧急优先改变 FAST/SLOW/STOP 点为 FAST 状态。你最多能控制 16 个 LFSSP或 LFFSL 点。\n参考\tEMAUTO，EMOFF，EMON，EMSET，EMSLOW"}, {"id": 81, "name": "EMOFF", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n逻辑语法\tEMOFF(pt1,...,pt16)\npt1 through pt16\tLDI，LDO，L2SL，L2SP，LOOAL或LOOAP点名。实际语法\tEMOFF(prior,pt1)\nprior\t标识 pt1 应该被用来控制有效选项的选项是： 501-控制一个点 OFF 并且放这个点进 EMER 优先。\n32523一控制一个点 OFF 并且放这个点进NONE 优先。\nPt1\tLDI，LDO，L2SL，L2SP，LOOAL 或 LOOAP 点的点名。\n用途\t当这个命令被执行时，定义的这个点被控制为 OFF。依靠你有的这个类型固件和你如何定义这个参数，这个点的优先也能被改变。你能控制整个 16 个点。\n参考\tEMAUTO，EMFAST，EMON，EMSET，EMSLOW"}, {"id": 82, "name": "EMON", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n逻辑语法\tEMON(pt1,...,pt16)\npt1 through pt16\tLDI，LDO，L2SL，L2SP，LOOAL或LOOAP点名。实际语法\tEMON(prior,pt1)\nprior\t标识 pt1 应该被用来控制有效选项的选项是： 504-控制一个点 ON 并且放这个点进 EMER 优先。\n32523一控制一个点 ON 并且放这个点进 NONE 优先。\nPt1\tLDI，LDO，L2SL，L2SP，LOOAL 或 LOOAP 点的点名。\n用途\t当这个命令被执行时，定义的这个点被控制为 ON。依靠你有的这个类型固件和你如何定义这个参数，这个点的优先也能被改变。你能控制最多 16 个点。\n参考\tEMAUTO，EMFAST，EMOFF，EMSET，EMSLOW"}, {"id": 83, "name": "EMSET", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tEMSET(value,pt1,...,pt15)\nvalue\t在这个语句中被定义的所有点将被用于控制这个模拟值。这个参数可以是整数，＼数，点名，或者局部变量。\npt1 through pt15\tLAI或LAO点的点名。\n用途\t这个命令被用于紧急优先下设置模拟点值。你在单个命令中最多能定义 15 个点。参考\tEMAUTO，EMFAST，EMOFF，EMON，EMSLOW"}, {"id": 84, "name": "EMSLOW", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tEMSLOW(pt1,...,pt16)\npt1 through pt16\tLFSSL或LFSSP点的点名。\n用途\t这个命令被用于紧急优先下改变 FAST/SLOW/STOP 点为 SLOW 状态。你能控制最多 16 个 LFSSP 或 LFFSL 点。\n参考\tEMAUTO，EMFAST，EMOFF，EMON，EMSET"}, {"id": 85, "name": "ENABLE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tENABLE(line1,...,line16)\nline1 through line16\t在同一设备内做为控制命令的命令的有效行号。行号慢从1一32,767的整数。\n用途\t这个命令允许你检验和执行 PPCL 程序码行。有单个 ENABLE 命令内你最多能启用 16 行。 ENABLE 仅仅能启用在命令中被明确定义的 PPCL 行。不能用 ENABLE 命令定义 PPCL 行系列。你必须分别指定每个 PPCL 行。\nExample\n100 IF (TIME.GT.8:00.AND.TIME.LT.17:00) THEN ENABLE(120) ELSE DISABL(120)\n注释\tACT 和 ENABLE 命令能被交换使用。\nENABLE 命令仅仅影响程序保留的设备的 PPCL 程序行。参考\tACT，DEACT，DISABL"}, {"id": 86, "name": "ENALM", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tENALM(pt1,...,pt16)\npt1 through pt16\t完全的能力能被激活的警报报告点名。\n用途\t这个命令对于指定点启用报警打印能力。一个命令最多能指定 16 个点来报警报告。\nExample\n50 IF (SFAN.EQ.ON) THEN ENALM(ROOM1) ELSE DISALM(ROOM1)\n注释\t这个命令不能被用于不保留在当做 ENALM 命令的同一设备中。\n这个命令颠倒 DISALM 命令。点必须被设置来报警和有能力去报警警报。这个命令不能优先于＊ODSB＊。\n参考\tALARM，DISALM，HLIMIT，LLIMIT，NORMAL"}, {"id": 87, "name": "ENCOV", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tENCOV(pt1,...,pt16)\npt1 through pt16\t对于COV报告被激活的点的点名。单个ENCOV命令最多能控制16个\n点。\n用途 这个命令被用于通过设备启动 COVs 的报告给在 Protocol 1 主干上的微机。在 Protocol 2 主干上，仅仅如果微机被定义为结点 100，COVs 才能被激活。当这个命令被执行时，所有用 COVs的运行的橾作将开始报告。除乍这个命令中被定义的点是损坏，更新图表，归档，COV 打印，报警，在一些案例中被报告的方程式的计算。在这个语句中定义的点命令必须被做为 ENCOV 命令保存在同一设备内。\nExample\n50 IF (SFAN.EQ.ON) THEN ENCOV(ROOM1, ROOM2) ELSE DISCOV(ROOM1,ROOM2)\n参考  DISCOV"}, {"id": 88, "name": "EPHONE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.1\t2.1\n语法\tEPHONE(pn#1,...,pn#16)\npn#1 through pn#16\t在设备中被定义的电话ID号。\n用途\t这个命令启用一个电话 ID 号。这个电话 ID 号表示在设备中定义的实际电话号码的数字号码。用 EPHONE 命令你最多能启用 16 个电话 ID 号。\nExample\n532 EPHONE(1,2,3,5,6)\n注释\tEPHONE 命令不能被用于网络外。参考\tDPHONE"}, {"id": 89, "name": "FAST", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tFAST(pt1,...,pt16)\npt1 through pt16\tLFSSL或LFSSP型点的点名。\n在 9.2 版本逻辑固件，CM 和 APOGEE 固件中添加的特征：\nFAST(@ prior, pt1,...,pt15)\n@prior\t定义一个指定点优先\npt1 through pt15\tLFSSL或LFSSP型点的名。\n用途\t这个命令改变 FAST/SLOW/STOP 点的橾作状态为 FAST。单个 FAST 命令能被用于改变最多 16 个 LFSSL 或 LFSSP 点的橾作状态。如果你改变点的优先，你仅仅最多能定义 15 个点。\nExample\n10 IF (RMTEMP.GT.78.0)THEN FAST(@NONE,\nFAN1,FAN2)\n参考\tAUTO，OFF，ON，SLOW"}, {"id": 90, "name": "GOSUB", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n逻辑语法\tGOSUB line# pt1,...,pt15\nor - (parentheses are optional) GOSUB line# (pt1,...,pt15)\nline#\t行号。这个号码指接下来执行哪个程序命令行（也就是子程序开始的位置）。这个行值必须是从1一32,767。\npt1 through pt15\t被传递给子程序的值的点名或局部变量。如果子程序不用变量参数，它们能被省略。\n实际语法\tGOSUB line#\nline#\t行号。这个号码指接下来执行哪个程序命令行（也就是子程序开始的位置）。这个行值必须是从1一32,767。\n用途\t当这个命令被执行时，下一个被执行的行是命令中指定的行。当计算机在子程序中遇到 RETURN 命令，执行的下一行将是紧随 GOSUB 语句的行。\n子程序对于用不同的值对同一计算执行几次的程序是尤其有效的。\n子程序的变量参数通过叫$ARG1一$ARG15 的保留点来指定。这些变量能被PPCL 码用于子程序，在点名和常数同一方法下。为了解释子程序控制的概念，提供了假想段落程序码。\n程序流顺序\n随后例子显示了命令许多 PPCL 命令被用于子程序。主要的子程序命令，所有的子程序都要求用 GOSUB 和 RETURN。$ARG 命令显示了值如何在子程序间传递。被用于绕过子程序的 GOTO 命令，也被显示在这个例子中。\n参考图4一1 与你遵循程序流程顺序相同。这个程序用变量PT1 和PT2 演示在子程序间的传递。包括一个完整传递的程序流如下：\n在行 130，程序分支到行 1010。\n在行 1010，程序赋值 10 给 PT1 和 20 给 PT2。行 1030 在 GOSUB 命令后返回原行（行 130）。在程序返回主行码后，两点的值变为\nPT1＝10 PT2＝20\n程序继续按顺序执行程序行，直至它碰到 300 行的 GOSUB 命令。这个程序分支到行 2010。这个命令也定义被传递的两个值（PT1 和 PT2）。\n在行 2010，$ARGn 点被赋值。当程序遇到$ARGn 点，它为点名检查这个召唤 GOSUB 命令。 GOSUB 命令用于召唤包括两个点名的子程序。当程序在行 2010 遇到第一个$ARGn 变量，它接受在 GOSUB 命令（PT1）定义的第一个点名，并存储这个值在$ARG1（10）。行 2010也对$ARG1 的值加 1。\n当程序在行 2020 遇到第二个$ARGn 变量，它接受在 GOSUB 命令（PT2）中定义的第二个点名，并存储这个值在$ARG2（20）中。行 2020 也对$ARG2 的值加 1。\n行 2030 在 GOSUB 命令命令后返回程序的程序到行（行 300）。在行 400，程序执行 GOTO命令到行 3000，那返回控制到主程序码。在程序的一次通过后，在被$ARGn 变量更新后的点值如下：\nPT1＝11 PT2＝21\nExample\n100 C MAINLINE PROGRAM FOR LOGICAL FIRMWARE\n110 C LEARNING HOW TO USE GOSUB, RETURN, AND\n112 C $ARG COMMANDS.***\n120\n130 GOSUB 1010\n...\n...\n...\n300 GOSUB 2010 PT1, PT2\n...\n...\n...\n400 GOTO 3000\n1000 C --SUBROUTINE 1\n1001 C THIS SUBROUTINE ASSIGNS NUMBERS\n1002 C TO PT1 AND PT2. IT THEN RETURNS\n1004 C CONTROL TO THE MAIN PROGRAM.\n1008 C\n1010 PT1 = 10\n1020 PT2 = 20\n1030 RETURN\n2000 C --SUBROUTINE 2\n2001 C THIS SUBROUTINE PASSES THE VALUE OF\n2002 C PT1 AND PT2 TO THEIR RESPECTIVE $ARG\n2003 C POINTS. IT THEN ADDS ONE TO BOTH $ARG\n2004 C POINTS AND RETURNS THE NEW VALUES TO\n2005 C PT1 AND PT2.\n2006 C\n2010 $ARG1 = $ARG1 + 1\n2020 $ARG2 = $ARG2 + 1\n2030 RETURN\n3000 C After the subroutine is through 3002 C executing, the program returns to 3004 C mainline code.\n表 4一1  带两个两个子程序的例程序嵌套子程序\n多级子程序是被从另一个子程序中召唤的程序代码块。在子程序内你每次的召唤构成一个等级。你被限制最多有 8 级子程序。\n如果你需要用多级子程序，对于 GOSUB 命令来说，支配$ARGn 变量和点名声明的未分选稍微有些改变。当用$ARGn 变量在多级子程序中时，你不能在子程序等级间分享$ARGn 值。一旦一个值被赋给$ARGn 变量，你必须通过不能赋另一个值给变量来保持这个值。\n随后例子说明被用在多级子程序中的$ARGn 变量和点声明的使用。这个例子包括一个程序码的主线部分和三个子程序。它示范了一个方法保留$ARGn 变量值做为你在子程序间传递程序的控制。\n参考表 4一2 与你遵循例程序码的步骤相同：\n在执行主程序码期间，程序在行 1500 遇到一个子程序召唤。GOSUB 命令转移控制到行\n2030。这个命令也传递 PT1 的值给子程序。\n当执行第一个子程序时，程序遇到一个给第二个子程序（放在行 2500）。由于这个被定义在另一个子程序内，并且一个变量已经被传递（PT1 给$ARG1），你必须通过在用于召唤第二个子程序的 GOSUB 命令中定义$ARG1 来保留$ARG1 的值。\n如果你在召唤第二个子程序中定义$ARG1，你引入第二个子程序的值取代$ARG1 的值。通过重新定义$ARG1，你通过传递给它给第二个子程序保护那个值。\n当你引入一个新值给第二个子程序（如定义一个叫 PT2 的点），然后那个点在$ARGn 变量后被定义。行 2500 示范了一个 GOSUB 命令保存先前使用的$ARGn 值并且传递一个被叫做 PT2 的新点。\n当你在第二个子程序中橾作变量$ARG1 和 PT2 时，$ARG1 继续表示 PT1 的值，而$ARG2表示 PT2 的值。\n在行 3200，第二个子程序召唤第二个子程序，为了保存$ARG1 和$ARG2 的值，你必须在召唤第三个子程序的 GOSUB 命令中定义它们。注意$ARG1 和$ARG2 是如何按连续顺序放置，以保持它们先前的点值。\n1000 C MAINLINE PROGRAM FOR LOGICAL FIRMWARE\n1010 C\n1020 C THIS PROGRAM TEACHES HOW GOSUBS AND\n1030 C $ARG POINTS WORK IN MULTIPLE\n1040 C LEVEL SUBROUTINES.\n1050 C\n1100 ...\n1200 ...\n1300 ...\n1350 C THIS GOSUB CALLS THE FIRST SUBROUTINE\n1360 C AND PASSES A VALUE DEFINED IN PT1 TO\n1370 C TO $ARG1.\n1380 C\n1500 GOSUB 2030 PT1\n2000 C\n2010 C SUBROUTINE #1\n2020 C\n2030 ...\n2040 ...\n2050 ...\n2060 C IN ORDER TO PRESERVE THE VALUE LOCATED\n2070 C IN $ARG1, YOU MUST DEFINE $ARG1 IN THE\n2080 C SECOND SUBROUTINE'S CALLING GOSUB. THE\n2090 C PROGRAM ALSO PASSES A SECOND POINT\n2100 C VALUE NAMED PT2.\n2110 C\n2500 GOSUB 3030 $ARG1,PT2\n2510 RETURN\n3000 C\n3010 C SUBROUTINE #2\n3020 C\n3030 ...\n3040 ...\n3050 C IN ORDER TO PRESERVE THE VALUES\n3060 C LOCATED IN $ARG1 AND $ARG2, YOU MUST\n3070 C DEFINE BOTH POINTS IN THE THIRD\n3080 C SUBROUTINE'S CALLING GOSUB. THE\n3090 C PROGRAM ALSO PASSES A THIRD POINT\n3100 C VALUE CALLED PT3.\n3200 GOSUB 4020 $ARG1,$ARG2,PT3\n3210 RETURN\n4000 C SUBROUTINE #3\n4010 C\n4020 ...\n4030 ...\n4040 RETURN\n表 4一2 多级子程序\n当程序从第二个子程序转到第三个子程序时，$ARG1和$ARG2继续分别表示PT1和PT2。因为它们在 GOSUB命令中被做为参数传递，所以两个$ARGn点保持它们的值。行3200也定义一个点PT3的新点。注意PT3如何被放置在两个$ARGn变量的后面。任何你在子程序中声明的新点必须被放置在你想要保持值的变量的后面。\n注意\t子程序的最后一行必须是RETURN命令。\n不能在子程序内用如LOOP，SAMPLE，TOD和WAIT的时基命令\n不能不使用RETURN命令转移控制移出子程序。仅仅如果这个命令不转移程序出子程序时，GOTO命令被用在子程序内。\nGOSUB命令不能被用在IF/THEN/ELSE命令内。 GOSUB命令仅仅能引用点名或局部变量。\n参考\tRETURN，GOTO"}, {"id": 91, "name": "GOTO", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tGOTO line#\nline#\t定向执行的下一行号。这个行必须是从1一32,767的数字。\n用途\t这个命令通过传递程序的不同部分用于控制程序的执行。\nExample\n10 IF (FANRUN.GE.1000) THEN GOTO 50\n注释\tGOTO命令应该仅仅传递程序控制给一个顺序更高的行号。\n如果在GOTO中指示的行号不存在，执行被转移到GOTO命令定义的行号的下一行。 GOTO命令不能转移程序控制给注释行。\n不要用GOTO命令去转移到程序顶部。如果最后程序行因为这而出错，时基命令（LOOP，WAIT等）将不能正确运行。\n参考\tGOSUB"}, {"id": 92, "name": "HLIMIT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tHLIMIT(value,pt1,...,pt15)\nvalue\t新值给设定的高限。这个值可能是＼数，点名，或逻辑变量。不允许是整数。 pt1 through pt15\t高值被改变为新值的模拟点的逻辑名。这些点必须做为命令在同\n一设备中。\n用途\t这个命令被用于为可报警模拟点设置一个新的高报警限制。在一个HLIMIT命令中最多可设置15个点到相同的高限。\nExample\n100 IF (OATEMP.GT.70.0) THEN HLIMIT(84.0, ROOM16)ELSE HLIMIT(78.0,ROOM16)\n注释\t如果一个点被用在HLIMIT命令，它必须被定义为可报警的。\n在所以11.1版本前的逻辑固件中，这个命令迫使上载的PPCL码给大容量存储设备。参考\tALARM，DISALM，ENALM，LLIMIT，NORMAL"}, {"id": 93, "name": "HOLIDA", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tHOLIDA(month1,day1,...,month8,day8)\nmonth1 through month8\t指定假期的月份。在单独一个命令中最多能指定八个假期。\n（一月＝1，六月＝6，十二月＝12等等）\nday1 through day8\t指定假期月份中的日期。一个单独命令最多能指定八个假期。每个月的第一天被键入为1。\n用途\t这个命令被用于定义最大预期一年的假期的日期。通过成双键入日期值（月，日期），一个HOLIDA命令最多能定义八个假期。\nExample\n630 HOLIDA(12,24,12,25,12,26,12,27)\n注释\t多假期命令能被用于定义多于八天的假期。\nHOLIDA和TODMOD命令按照程序正确执行的顺序必须优先于任何TOD或TODSET命令。设备中的HOLIDA或TODMOD命令将仅仅影响那个设备的TOD，TODSET和SSTO命令。\n当一个假期日期在HOLIDA命令中重现，在TODMOD命令中那天的模式数被设置为16。\n如果假期被用HOLIDA命令定义，在字段界面固件中TOD日历也确保假期在两个位置被定义为同一天。例如：\n如果假期用PPCL HOLIDA语句定义，在TOD日历中却有不同的日期被定义，被PPCL TOD命令对于模式16命令（假期模式）的设备命令将不仅仅执行HOLIDA语句定义的假期，而且执行TOD日历中定义的假期。在这个安全中，设备按照假期计划将运行得比所需的天数更多。\n参考\tTOD，TODMOD，TODSET"}, {"id": 94, "name": "IF/THEN/ELSE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法  IF(exp) THEN x\nalso\nIF(exp) THEN x ELSE y\nExp      做为THEN/ELSE判定基础的一个或多个逻辑或关系测试。逻辑测试能比较变量，常数，状态符，优先符，和／或数字，状态文字和系统点。个别逻辑测试能被用于把关系和逻辑运算连接在一起。你能测试最多13个运算。运算可以是点名，状态符（如ON，ALARM，等等），@优先符，和/或数字。\nY    表示一个条件，赋值，或者如果表达式（exp）是假的话采取的行动的过程。\n用途 这个条件逻辑命令被用于提供定制判定逻辑。当IF表达式是真，THEN命令被执行。如果条件是假，ELSE命令（如果定义）被执行。如果条件是假的而没有ELSE命令，继续执行下一行代码。\nExample 1\n110 IF (OATEMP.GT.70.0) THEN OADPR = 80.0\nExample 2\n310 IF (TIME.GT.8:00.AND.TIME.LT.16:00) THEN ON(@NONE,SFAN) ELSE ON(@OPER, SFAN)\n注释\tGOSUB命令不应该被用于x或y参数。\n时基命令如WAIT，和TODMOD不应该直接被用于x或y参数。"}, {"id": 95, "name": "INITTO", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tINITTO(value,pt1,...,pt15)\nvalue\t对于所有指定点，取代现在的总值的新值。这个参数键入的数字必须是＼数，点名或者局部变量，整数不被允许。\npt1 through pt15\t被用做加总的点名。点必须被保存在与控制程序一样的相同设备中。用途\t这个命令用于改变点的总值为一个新值（一般是0）。一个单一的命令最多能定义15个点名来接受新值。\nExample\n10 IF (DAYOFM.EQ.1.0) THEN INITTO(0.0, PMP1,PMP2)\n注释\t在命令中被定义的点必须保留在与命令一样的相同设备中。\nINITTO命令不能重设LPACI点型的值。仅仅被定义的总值的点能被这个命令初始化。\n当用在APOGEE字段界面（能单个加总一个点的状态），INITTO将重设所有数字点的加总状态为0。"}, {"id": 96, "name": "LLIMIT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tLLIMIT(value,pt1,...,pt15)\nvalue\t低限被设置的新值。这个值必须是＼数，点名或者局部变量，整数不被允许。\npt1 through pt15\t高限被改为新值的模拟点的逻辑名。这些点必须在与命令一样的相同设\n备中。\n用途\t这个命令用于为可报警模拟点设置新的低报警限制。在一个LLIMIT命令内最多15个点能被设置成同一低限。\nExample\n100 IF (OATEMP.GT.68.0) THEN LLIMIT(76.0, ROOM16) ELSE LLIMIT(68.0,ROOM16)\n注释\t如果点被用在LLIMIT命令中，它必须被定义为可报警的。\n在所有11.1版本前的逻辑固件中，这个命令迫使上载的PPCL码给大容量存储设备。参考\tALARM，DISALM，ENALM，HLIMIT，NORMAL"}, {"id": 97, "name": "LOCAL", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tLOCAL (pt1... pt16)\npt1 through pt16\t程序创建的虚拟点名。\n用途\t这个程序能参考$pt1一$pt16的这些点。其它程序能通过参考程序名后面紧跟着系统分隔符\n（：）紧跟着局部点名来参考这些点。\n例1\n下面是控制包含在程序内的一个局部点的例子：\n100 LOCAL(FANPT)\n200 ON($FANPT)\n例2\n下面是一个在不同程序中用逻辑点值的例子（这里PROG1是程序名）：\n300 IF(“PROG1:FANPT”.EQ.ON)THEN ..."}, {"id": 98, "name": "LOOP", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n逻辑语法 LOOP(type,pv,cv,sp,pg,ig,dg,st,bias,lo,hi,0) type 指明控制行动的类型。你的选择如下： 0＝直接动作\n128＝反向动作\npv\t正在被控制或规定的过程变量的点名。它通常是一个LAI点，而且可能是一个表示温度，流速，空气速度等的LAO点。\nCv\t循环输出的点名。它通常是一个表示驱动器信号如压力，电流或电压的LAO点。这个值能被键入为局部变量。\nSp\t为循环设置点反对过程变量被比较。这个参数能被键入为点名或者＼数。设定点的值应该与过程变量同样表示同样的工程单位。这个值能被键入局部变量。\nPg\t协调结果决定部分的PID控制行动，那是直接协调设定点（sp）和过程变量（pv）之间的错误。这个参数能被键入点名，局部变量，整数或＼数。协调结果用下面公式计算：\nPg＝控制的设备的满量程／改变输出设备从完全开到完全关闭的节流范围\nX1000\nIg\t积分增益一积分控制行为对于整个循环控制行为的贡献。积分作用最＼化偏差\n（在过程变量和设置点间的不同）。\n当用积分增益时，确保减少比例增益，如此循环的整个增益不会高到足以引起不稳定和振荡。如果需要，可以用一个低的积分增益开始，然后慢慢增加。推荐的起始点的比例增益的2%。增加积分增益可能增加调整到循环的时间。这个值能被键入点名，整数，＼数，或者局部变量。积分增益应该用下面公式计算。\n如果用积分增益：\nig = pg x .02\n如果不用积分增益：\nig = 0\ndg 微分增益一控制系统相应的时间定额。微分增益通常用于快速响应系统。微分增益被键入为整数，＼数，点名或局部变量。当不使用微分增益，键入为0。添加微分增益可能增加调整循环的时间。\nSt 抽样时间。这个过程变量（pv）计秒抽样如何频繁。能被指定的最＼的抽样时间是1秒。抽样时间被键入为整数，＼数，点名或者局部变量。\nBias 偏置是控制输入（cv）的值（工程单位）。仅仅在比例循环中，当测量变量（pv）等于设定点（sp）。偏置被键入为＼数，整数，点名或者局部点。偏置值应该一直在高和低值之间。\n偏置通过增加50%的输出控制范围给低限来计算。例如，你有一个值在3一8psi弹性范围。为了计算偏置，找出一半的弹性范围（5psi/2＝2.5），添加这个值给低限（3psi）。这个设备的偏置是5.5psi。\nlo 循环输出的低限。这个参数应该被设置来匹配低湍系列的控制设备。低限被键入为＼数，整数，点名或者局部变量。\nHi 循环输出的高限。这个参数应该被设置来匹配高湍系列的控制设备。高限被键入为＼数，整数，点名或者局部变量。\n不用。键入0。\nExample\n2000 C CONTROL LOOP STATISTICS (LOGICAL\n2002 C FIRMWARE)\n2004 C DIRECT CONTROL LOOP\n2006 C INPUT = RM100 OUTPUT = HVALVE\n2008 C SETPOINT = HSETPT\n2010 C PROPORTIONAL GAIN = PGAIN-NO I OR G\n2012 C GAINS\n2014 C SAMPLE TIME = 1 SECOND\n2016 C BIAS = 5.5\n2018 C LOW = 3.0\n2020 C HIGH = 9.0\n2022 LOOP(0,RM100,HVALVE,HSETPT,PGAIN,0,0,1,\n5.5,3.0,9.0,0)\n实际语法\tLOOP(type,pv,cv,sp,pg,ig,dg,st,bias,lo,hi,0)\ntype\t指定控制动作的类型。你的选择如下：\n0＝直接动作\n128＝反向动作\npv\t正在被控制或规定的过程变量的点名。它通常是一个LAI点，而且可能是一个表示温度，流速，空气速度等的LAO点。\nCv\t循环输出的点名。它通常是一个表示驱动器信号如压力，电流或电压的LAO点。这个值能被键入为局部变量。\nSp\t为循环设置点反对过程变量被比较。这个参数能被键入为点名或者＼数。设定点的值应该与过程变量同样表示同样的工程单位。这个值能被键入局部变量。\nPg\t协调结果决定部分的PID控制行动，那是直接协调设定点（sp）和过程变量（pv）之间的错误。这个参数能被键入点名，局部变量，整数或＼数。协调结果用下面公式计算：\nPg＝控制的设备的满量程／改变输出设备从完全开到完全关闭的节流范围\nX1000\nIg\t积分增益一积分控制行为对于整个循环控制行为的贡献。积分作用最＼化偏差\n（在过程变量和设置点间的不同）。\n当用积分增益时，确保减少比例增益，如此循环的整个增益不会高到足以引起不稳定和振荡。如果需要，可以用一个低的积分增益开始，然后慢慢增加。推荐的起始点的比例增益的2%。增加积分增益可能增加调整到循环的时间。这个值能被键入点名，整数，＼数，或者局部变量。积分增益应该用下面公式计算。\n如果用积分增益：\nig = pg x .02\n如果不用积分增益：\nig = 0\ndg 微分增益一控制系统相应的时间定额。微分增益通常用于快速响应系统。微分增益被键入为整数，＼数，点名或局部变量。当不使用微分增益，键入为0。添加微分增益可能增加调整循环的时间。\nSt 抽样时间。这个过程变量（pv）计秒抽样如何频繁。能被指定的最＼的抽样时间是1秒。抽样时间被键入为整数，＼数，点名或者局部变量。\nBias 偏置是控制输入（cv）的值（工程单位）。仅仅在比例循环中，当测量变量（pv）等于设定点（sp）。偏置被键入为＼数，整数，点名或者局部点。偏置值应该一直在高和低值之间。\n偏置通过增加50%的输出控制范围给低限来计算。例如，你有一个值在3一8psi弹性范围。为\n了计算偏置，找出一半的弹性范围（5psi/2＝2.5），添加这个值给低限（3psi）。这个设备的偏置是5.5psi。\nlo\t循环输出的低限。这个参数应该被设置来匹配低湍系列的控制设备。低限被键入为＼数，整数，点名或者局部变量。\nHi\t循环输出的高限。这个参数应该被设置来匹配高湍系列的控制设备。高限被键入为＼数，整数，点名或者局部变量。\n不用。键入0。 表4-2\t\t循环极限计算\n表4-3 循环极限值\n用途 这个命令执行封闭的循环控制，通过用任何的组合比例，整数和微分控制行动既可以直接又可以用相反地行动模式。它监控一个输入点（过程变量），把它与预期值（设定点）比较，并调整输出（控制变量）引起输入联系设定点。LOOP命令是给气压接收控制器的软件对应物。反\n终结是一旦或者低限达到时，自动地阻止积分行动。下面例子说明了这个概念：\nExample\n2000 C CONTROL LOOP STATISTICS (PHYSICAL\n2002 C FIRMWARE)\n2004 C DIRECT CONTROL LOOP\n2006 C INPUT = RM100 OUTPUT = HVALVE\n2008 C SETPOINT = HSETPT\n2010 C PROPORTIONAL GAIN = 4000 I GAIN = 10\n2012 C D GAIN = 0\n2014 C SAMPLE TIME = 1 SECOND\n2016 C BIAS = 42\n2018 C LOW = 20\n2020 C HIGH = 120\n2022 LOOP(0,RM100,HVALVE,HSETPT,4000,\n10,0,1,42.0,20.0,120.0,0)"}, {"id": 99, "name": "MAX", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tMAX(result,pt1,...,pt15)\nresult\t储存最大值的点名。它能是一个虚拟点名或者一个局部变量。\npt1 through pt15\t被比较的值。值可能是点名，＼数，整数和局部变量的任何成分。用途\t这个命令选择从2一15点名或数字的最大值（数字必须是十进制形式），并存储这个值在结果点内。\nExample\n10 MAX(HOTZON,ZONE1,ZONE2,ZONE3, 9.0)\n参考\tMIN"}, {"id": 100, "name": "MIN", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法  MIN(result,pt1,...,pt15)\nresult   被存储的最低值的点名。它可能是虚拟点或者局部变量。\npt1 through pt15  被比较的值。这个值可能是任何的点名，＼数，整数和局部变量。用途 这个命令选择从2一15点名或数字（数字必须是十进制形式）的最低值，并存储这个值进 result点。\nExample\n10 MIN(COOLZN,ZONE1,ZONE2,ZONE3,9.0)\n参考  MAX"}, {"id": 101, "name": "NIGHT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n9.1\n语法\tNIGHT(pt1,...,pt16)\npt1 through pt16\t逻辑控制器点的名。\n用途\t这个命令改变逻辑控制器点到NIGHT模式。逻辑控制器能被控制为DAY或NIGHT模式。参考下面例子：\nExample\n100 IF (TIME.LT.7:00.OR.TIME.GT.18:00) THEN NIGHT(LCTLR2) ELSE DAY(LCTLR2)\n对于一些设备控制器，NIGHT模式也被归类为UNOCC模式。如果一个设备控制器是在UNOCC模式，PPCL认为这个状态为NIGHT。\n参考\tDAY"}, {"id": 102, "name": "NORMAL", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tNORMAL(pt1,...,pt16)\npt1 through pt16\t被取出的报警紧接着命令状态点的名。\n用途\t这个命令最多移出16个点的报警紧接着命令条件，并把它们返回到正常橾作模式。\nExample\n100 IF (RM90T.GT.80.0) THEN ALARM(ROOM90) ELSE NORMAL(ROOM90)\n参考\tALARM，DISALM，ENALM，HLIMIT，LLIMIT"}, {"id": 103, "name": "OFF", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tOFF(pt1,...,pt16)\npt1 through pt16\t将把优先性设置为NONE的点名\n添加到9.2版本逻辑固件，CM和APOGEE固件的特征：\nOFF(@prior,pt1,...,pt15) @prior\t指定一个特定点优先\npt1 through pt15\t被控制的点的点名。可接受的点的类型是LDI，LDO，L2SL，L2SP， LOOAL，LOOAP，LFSSL和LFSSP。\n用途\t这个命令被用于开关一个点到OFF状态。你能用一个单独的OFF命令最多改变16个点的橾作状态。如果你改变这些点的优先，你仅仅能指定最多15个点。\nExample\n20 IF (OATEMP.GE.63.0) THEN OFF(@NONE, PUMP1,PUMP2,PUMP3)\n注释\tFAST/SLOW/STOP点（LFSSL，LFSSP）用OFF命令来停。参考\tAUTO，FAST，ON，SLOW"}, {"id": 104, "name": "OIP", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tOIP(trigger, ''seq'')\ntrigger\t一个LDO，LDI点或者用来触发橾作顺序的局部变量的点名。\nSeq\t如果你正在用湍子，这个变量表示你按键的顺序。这个结果必须用双引号“”来括入。在你提前的序列的每个等级中，你必须键入一个斜线／。这个序列在长度上不能超过60个字符\n（包括斜线）。\nOIP命令用trigger点决定执行的条件。当这个触发点打开，然后运算顺序被执行一次。为了再一次执行这个运算顺序，触发点必须被关上，并且然后再打开。\nExample\n100 C\n102 C OIP COMMAND INFORMATION:\n104 C OPERATOR SEQUENCE\n106 C\n108 C - POINT\n110 C - DISPLAY\n112 C - PRINTER\n114 C - YES\n116 C - VALUE\n118 C - ANY\n120 C - NAME\n122 C - ALL NAMES\n124 C\n130 C TRIGGER POINT - RPT7AM\n150 OIP(RPT7AM,\"P/D/P/Y/V/A/N/*\")\n注释\tOIP命令用于产生信息，显示和被按时间交错的报告（这对于所有的OIP命令不使用相同的触发点。这允许你在一个命令开始前完成另一个命令。\n如果这个橾作顺序键入不正确并且控制程序试图执行它，OIP命令将出现FAILED。\n在从电源故障中返回时，在一个启动命令已经被执行后，或者在数据库加载后的第一次执行控制程序，直至触发点被连接，OIP命令才会执行。\n在OIP命令被执行后，在OIP命令被再一次执行前，触发点必须被重设（控制返回它的原始状态）。\n当用一个带LDO类下点的OIP命令时，你必须用1或0控制点开或关。用除1或0外的任何文字都将引起语句错误。\n如果触发点名用数字开始，然后这个点名应该在前面在一个@符号。如果按键顺序的一个变量由数字开始，这个点名前面不用添加@符号。如：\n下面语句是错误的：\n100 OIP(TRIG,\"P/T/D/H///FAN/@1FAN//60/\")\n这个语句才是正确的：\n100 OIP(TRIG,\"P/T/D/H///FAN/1FAN//60/\")\n为了看到触发点改变值，每次程序通过时OIP命令必须被执行。 OIP命令不能用于执行循环调节。\n在一个OIP语句中，一个斜线／能被用于表示回车。多点趋向显示的的例子如下：\nOIP (TRIG, \"P/T/D/P/// Name1/Name2/Name3//10/\")\n在版本12.4/12.4.1逻辑固件完成的改变允许键入你想显示的趋向例子。对于多点趋向报告，用下面语法：\nOIP (TRIG, \"P/T/D/P/// Name1//Name2//Name3//10/\")"}, {"id": 105, "name": "ON", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tON(pt1,...,pt16)\npt1 through pt16\t把它们优先设置为NONE点的点名。\n添加到9.2版本逻辑固件，CM和APOGEE固件的特征：\nON(@prior,pt1,...,pt15) @prior\t指定一个特定点优先\npt1 through pt15\t被控制的点的点名。可接受的点的类型是LDO，L2SL，L2SP，LOOAL，\nLOOAP。\n用途\t这个命令被用于开关一个点到ON状态。你能用一个单独的OFF命令最多改变16个点的橾作状态。如果你改变这些点的优先，你仅仅能指定最多15个点。\nExample\n100 IF (OATEMP.LT.60.0)THEN ON(@NONE, PUMP1,PUMP2)\n参考\tAUTO，FAST，OFF，SLOW"}, {"id": 106, "name": "ONPWRT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tONPWRT(line#)\nline#\t从电源故障返回后的控制程序中执行开始的行号。这个数字必须是从1一 32,767的整数。如果行号无效，这个命令被忽略。\n用途\t这个命令与GOTO命令相似。允许你当电源故障时选择被执行的第一个程序行。ONPWRT命令仅仅被执行一次，然后当电源保持ON时被忽略。\nExample\n10 ONPWRT(1800)\n注释\tONPWRT命令应该是PPCL程序的第一个命令，因为程序执行在电源故障后返回PPCL程序的第一行。\n如果由于电源故障，字段界面的数据库丢失，当电源恢复后，ONPWRT命令不被执行。"}, {"id": 107, "name": "PARAMETER", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tPARAMETER A = B\n一个有效的标记名。这个名字不能定义在任何数据库中并且不能由数字开始。\n被赋值给标记名的值。\n用途\t这个PARAMETER命令定义被用作存储位置的标记。当PPCL程序编码时，计算机把每次标记 A都赋值为B。程序的编译版本包括被标记表示的实际值。\nExample\nPARAMETER DELAY = 15\n100 WAIT(DELAY,FAN1,FAN2)\n注释\tPARAMETER命令通常被放置在程序顶部以便于它们容易发现。  这个命令不要求行号。"}, {"id": 108, "name": "PDL", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n实际语法\tPDL(totkw,target,g1s,g1e,...,g4s,g4e)\n逻辑语法\t\tPDL(area,totkw,target,g1s,g1e,sh1,...,g4s,g4e,sh4) area\t计量区号。键入这个数字为整数。\nTotkw\t在PDL命令控制下的负载消耗的总功率。如果电源消耗负载在PDLDAT命令和PDL命令中被定义并且满足下面规范，则它被认为是在PDL命令控制下。\n负载现在在NONE或PDL优先。 PDL命令被跟踪和激活。\n这个totkw参数与在自身的PDLDPG命令中被指定做为kwtot参数是相同的虚拟LAO点。这个参数的值由PDL命令计算。\nTarget\t由PDL命令保持的电源消耗限制。这个参数与为相应的PDLDPG命令的target参数相同的被指定的虚拟LAO点。这个参数值由PDLDPG命令计算。\ng1s\t在PDLDAT命令中定义的优先组1（第一组去卸载）负载的起始行。 g1e\t组1负载定义的未行。\nSh1\t0一组1中的固定的阻断，或者1一组1中的round robin shedding. g4s\t 在PDLDAT命令中优先组4负载定义的起始行。\ng4e\t组4负载定义的未行。\nSh4\t0-在组4中的固定阻断或者1一在组4中的round robin shedding.\n用途\t单个PDL命令被用于和load handling字段界面中的PDLDAT命令组联合去定义负载参数并且为组负载保持一个定义的KW水平（或目标）。\nPDL命令有责任直接控制PDLDAT命令组。这个控制包括：\n通过阻断和恢复负载来保持一个目标KW值。这个值通过LAO点的值传递给PDL命令。\n在它的控制下监控现有的总功率。PDL命令判定在PDLDAT命令中定义的哪个负载和它联合对峰值需求极限控制是实际上是可用的。\n对PDL命令有效的总功率被放在LAO点。\n保持定时做为对minon, minoff, maxoff等PDLDAT语句中的定义。\n确定在PDL控制下的每个负载如何适合四个优先组中的一个。它通过检查PDLDAT命令的行号来实现。\n定义和控制每个优先组的阻断和恢复的顺序。（阻断和恢复的两种类型是fixed和round robin）。在逻辑固件11.2和更高版本中，在90%的设定点，阻断开始，并不像早期版本中100%。\nExample\n100 PDL(1,TOTKW1,TGT1,100,199,0,200,299,1,\n300,399,0,400,499,0)\n注释\t同逻辑和CM固件一样，你仅仅能在一个字段界面定义一个仪表。APOGEE固件在每个程序中能定义一个仪表。\n当点被峰值需求极限指令控制时，它们被放在PDL优先。组1是第一个阻断，组4是最后一个。即使所有组不被使用，保留的精确度应该包括整数0。\n参考\tPDLDAT，PDLDPG，PDLMTR，PDLSET"}, {"id": 109, "name": "PDLDAT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tPDLDAT(ptname,minon,minoff,maxoff,kwval)\nptname\t负载的点名。在网络系统中，被PDLDAT语句定义的负载必须做为PDL语句保留在同一字段界面内。\nMinon\t在恢复负载后PDL必须保持的最少时间（按分钟计）。这个参数必须小于546并且被定义为整数，＼数，点名或者逻辑变量。\nMinoff\t负载在PDL恢复它前必须保持OFF的最少时间（按分钟计）。这个参数必须小于 546，并且被定义为整数，＼数，点名或者局部变量。\nMaxoff\t在负载阻断后，PDL必须保持它OFF的最大时间（按分钟计）。这个参数被定义为整数，＼数，点名或者局部变量。Maxoff最大允许值是（minoff+546）。\nKwval\t负载的功率。这个参数可能是＼数，整数，点名或者局部变量。\n用途  一组PDLDAT命令被用于在load handling字段界面中和单个PDL命令联合来定义负载参数和保持那组负载一定的功率水平（或目标）。这个命令最＼的on-time，最＼的off-time，最大的 off-time，和指定负载的功率水平。\nExample\n100 C\n102 C PDLDAT COMMAND INFORMATION:\n104 C\n106 C - CONTROLLED POINT - FAN17\n108 C - MINIMUM ON TIME - 10 MINUTES\n110 C - MINIMUM OFF TIME - 5 MINUTES\n112 C - MAXIMUM OFF TIME - 180 MINUTES\n114 C - KILOWATT RATING - 10KW\n116 C\n118 PDLDAT(FAN17,10,5,180,10)\n注释\tPDLDAT应该被一个单独的PDL语句来参考。多个参考可产生不可预计的结果。参考\tPDL，PDLDPG，PDLMTR，PDLSET"}, {"id": 110, "name": "PDLDPG", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tPDLDPG(area,kwtot1,target1,...,kwtot7,target7)\narea\t表区指示。这个参数必须和由相应PDLMTR语句指定的区域参数有相同的数字值。 kwtot1 through kwtot7\t由PDL命令控制下的负载消耗的总功率。如果它被定义在联合\n了PDL命令的PDLDAT命令中，功率消耗的负载被认为是在PDL命令控制下。随后条件满足：\n负载现在在ON状态并且被放置在低或等于PDL优先的优先级状态下。\n负载现在在OFF状态并且被放置在PDL优先的状态下（那是，如果它被PDL算法阻断）。 PDLDAT命令正在被跟踪并被激活。\nTotkw参数必须与在特有的PDLDPG命令下kwtot参数指定的虚拟LAO点相同。这个参数值由PDL命令计算。\ntarget1  through  target7\t功率消耗目标值。在这个数字点组中，每个PDL命令都必须指定一个目标参数。对于每个这个表区号的PDL语句必须指定一个kwtot参数。参数值由它被定义的PDL语句赋给。所有kwtot参数值的总数被PDLDPG命令用于计算每个PDL命令的功率消耗目标值。注意这些虚拟LAO点的每一个，这个intercept应该被定义为0，COV极限应该被定义为1。\n用途\t把每个PDL语句和功率消耗目标参数关联起来。这个命令也计算在它的表区中每个PDL命令控制下的所有负载使用的总的功率。\nExample\n100 PDLDPG(1,TOTKW1,TGT1,TOTKW2,TGT2)\n参考\tPDL，PDLDAT，PDLMTR，PDLSET"}, {"id": 111, "name": "PDLMTR", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tPDLMTR(area,hist,calc,window,plot,warning,mt1,def1,...,mt5,def5)\narea\t表区，被键入为一个整数（1一32,767）。这个通常是一个整数，但也能是点名或局部变量。\nHist\t做为百分比的历史预测权重因数。这个参数应该小于50%预测要求。推荐值是30%，可能是个＼数或者整数值。\nCalc\t按分钟计算间隔（一分钟是最＼的）。这个值通常被键入为整数或者＼数，但也可以是个点名或者局部变量。\nWindow\t推拉窗按分钟的间隔（每个窗口能存储最多30个例子）。这个值通常被键入为整数或＼数，但也能是点名或局部变量。\nPlot\t对比于PDL活动报告需求块部分的时间的最大值。这个值应该比PDLSET中用的最高设定点大。这个值能被键入为＼数，整数，点名或局部变量。\nWarning\t能报警信息＝1\n不能报警信息＝0\nmt1 through mt5\t需求／通过消耗表的逻辑点名（可能是LPACI或模拟点）。\ndef1 through def5\t对于历史（最晚，最好的）数据输入1或者输入一个常数或固定的默认值。默认值用模拟和脉冲输入两者的功率（要求的）来表达。当通信失败，默认值被用于代替表值\n（mt1-mt5）。这个参数可接受的值包括整数，＼数，点名或者局部变量。\n用途\t这个命令的主要作用是监控表，按要求做预测，保证最新的报告数据。每个表区仅仅能定义一个PDLMTR命令。对于APOGEE字段界面，每个程序能定义一个PDLMTR命令。\nPDLMTR命令被用来定义：通过点名的仪表\n计算间隔（要求多久预测被做）预测推拉窗的宽度。\n对于推拉窗预测的历史的权重因数。如果表不能被读入，使用默认值。\n是否报警信息被输出做为接近或者超过设置点的预测要求。与报告的需要图表部分对比的对于时间的全刻度要求。\nPDLMTR命令对于下列行为有责任：做推拉窗要求预测。\n更新与需求和消耗有关的报警信息。决定什么时候报警信息应该被输出。初始化表区。\nExample\n200 C\n202 C PDLMTR COMMAND INFORMATION:\n204 C\n206 C - HISTORICAL WEIGHTING FACTOR - 30%\n208 C - CALCULATION INTERVAL - 1 MINUTE\n210 C - PREDICTION WINDOW - 15 MINUTES\n212 C - THE TIME VERSUS DEMAND SECTION OF\n214 C THE ACTIVITY REPORT PLOT HAS A\n216 C FULL SCALE OF 500 KILOWATTS.\n218 C - WARNING MESSAGES ARE ENABLED TO\n220 C BE SENT TO ALARM DEVICES.\n222 C - THE DEFAULT VALUES OF THE TWO\n224 C METER POINTS (METER1 AND\n226 C METER2) ARE 100 KILOWATTS AND\n228 C 50 KILOWATTS RESPECTIVELY.\n230 C\n250 PDLMTR(1,30,1,15,500,1,METER1,100, METER2,50)\n注释\t用逻辑固件，你能在一个字段界面定义一个表区。\n如果LPACI点被用在PDLMTR语句中，那么PDL应该在LPACI复位后重新启动表区。如果LPACI正在被用于微机峰值需求极限（PDL），那么PDL命令必须停止，LPACI复位，然后PDL能被重新启动。\n当mt1-mt5使用模拟点时，工程单位是KW。当LPACI点被用在mt1-mt5，工程单位是KWH。参考\tPDL，PDLDAT，PDLDPG，PDLSET"}, {"id": 112, "name": "PDLSET", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法 PDLSET(area,exceed,set1,time1,...,set7,time7) area  表区。它被键入一个整数。\nExceed 在每个设置点间隔未被控制为OFF的DO点。如果浮动窗口峰值在先前间隔的任何时间超过设置点，它被转为ON。\nset1 through set7  不被超过的需求设置点（KW）。这个参数可能是＼数，整数，点名或者局部变量。\ntime1 through time7  相应设定点未的时间。这个参数通常键入一个按军用格式的钟表时间（24小时表）。它也能被键入一个整数，＼数，或局部变量。时间必须是按上升的顺序。\n用途 PDLSET命令有责任指定峰值需求限制等级和确保这些等级在设置点有效的日期时间内不被表区超过。由PDLMTR命令做的需求预测和被这个命令（决定表区必须被关闭和恢复的KW数）定义的适当的设置点比较。\nExample\nC\nC PDLSET COMMAND INFORMATION:\nC\nC - THIS COMMAND CONTROLS METER AREA 1.\nC - THE VIRTUAL LDO POINT WHICH WILL\nC TOGGLE ON AND OFF AT THE END OF\nC THE SET POINT INTERVALS WHEN THE\nC SET POINT WAS EXCEEDED IS\nC CALLED PEAKEX.\nC - PDLST1 SET POINT ENDS AT 11:00 A.M.\nC - PDLST2 SET POINT ENDS AT 4:30 P.M.\nC\n120 PDLSET(1,PEAKEX,PDLST1,11:00,PDLST2,16:30)\n注释\tPDLSET命令要求每天至少两个设置点／时间。除乍至少两个设置点，否则报告不会形成。参考\tPDL，PDLDAT，PDLDPG，PDLMTR"}, {"id": 113, "name": "RELEAS", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tRELEAS(pt1,...,pt16)\npt1 through pt16  点优先性设置为NONE的点名。改变添加到9.2版本的逻辑固件，CM和APOGEE固件： RELEAS(@prior, pt1,.\tpt15)\n@prior\t定义一个正在被释放的指定点优先。 pt1 through pt15\t正在被释放点的点名。\n用途\t这个命令改变最多16个点的优先到NONE优先。添加到逻辑固件的特征允许你最多释放15个点到NONE优先。\n如果一个命令语句如SET，＝，ON或OFF在同时被用在相同的点上，被用在RELEAS语句的LAO或LDO点能在Trend Data Report中产生多个输入。\n注释\t一直至少用一个像1一样高的优先，那样点确保正确的释放。如果点已经被键盘控制，它将要求输入一个@OPER来释放点的优先到NONE。"}, {"id": 114, "name": "RETURN", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tRETURN\n用途\t这个命令标记在子程序未湍。它必须是任何GOSUB子程序的最后命令。当遇到RETURN命令，程序将返回到紧随GOSUB命令的行。\nExample\n100 GOSUB 310\n110 ...\n120 ...\n130 ...\n290 ...GO TO 350\n300 C THIS SUBROUTINE PERFORMS...\n310 ...\n320 ...\n330 ...\n340 RETURN\n350 CONTINUE WITH REST OF PROGRAM\n参考\tGOSUB"}, {"id": 115, "name": "SAMPLE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tSAMPLE(sec) line\nsec\t在状态评估间的时间间隔（按秒，从1一32,767）。这个值被键入为整数。\nLine\t不包括自己拥有的定时功能的任何PPCL语句（WAIT，PDL，TOD，TIMAVG，LOOP，SSTO或另一个SAMPLE命令）。\n用途\t这个命令允许你定义多久一个命令被评估。在比如防止ON/OFF判定的短循环，从噪音流传送器减少COVs的情况下，它是有益的。有效命令包括赋值，计算和程序控制（GOTO，GOSUB）。 Example\n200 SAMPLE(600) ON(HALFAN)\n注释\t从电源故障，在ENABLE命令后，或在带数据库负载的PPCL的第一次执行期间中的回路，\nSAMPLE命令立即执行。"}, {"id": 116, "name": "SET", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tSET(value,pt1,...,pt15)\nvalue\t点被控制的值。这个数字可以是＼数，逻辑点，或局部变量。不允许是整数。 pt1 through pt15\t将它们优先设置为NONE的点名。\n添加到9.2版本逻辑固件，CM和APOGEE固件的特征：\nSET(@prior, value, pt1,...,pt14) @prior\t定义指定点优先。\nValue\t被控制的点的值。这个值可以是＼数，逻辑点，或局部变量。在APOGEE固件中允许\n整数。\npt1 through pt14\tLAO或LDO，LFSSL，LFSSP，LOOAL，LOOAP，L2SL，L2SP，和LPACI点型的点名。\n用途\t这个命令被用于改变输出点为一个新值。一个单独设置命令中一个新值最多能被赋值给 15个点（当包括优先时为14个点）。\nExample 1\n450 SET(75.0,RMSET1,RMSET2,RMSET3)\nExample 2\n550 SET(@EMER,75.0,RMSET1,RMSET2,RMSET3)"}, {"id": 117, "name": "SLOW", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tSLOW(pt1,...,pt16)\npt1 through pt16\t被控制到慢的LFSSL或LFSSP型的点名。\n添加到9.2版本逻辑固件，CM和APOGEE固件的特征：\nSLOW(@prior,pt1,...,pt15) @prior\t定义指定点优先。\npt1 through pt15\tLFSSL或LFSSP型点的点名。\n用途\t这个命令被用于改变FAST/SLOW/STOP点为低速（SLOW）。单个SLOW命令能被用于改变最多16个LFSSL或LFSSP点的橾作状态。如果你改变点的优先，你仅仅最多能定义15个点。\nExample\n20 IF (RMTEMP.LT.75.0)THEN SLOW(@NONE, FAN1,FAN2)\n参考\tAUTO，FAST，OFF，ON"}, {"id": 118, "name": "SSTO", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\t\tSSTO(zone,mode,cst,csp,est,lst,ost,esp,lsp,osp,ast,asp) zone\tSSTO区域号（有效值是1一5）\nmode\t模式号。有效输入是下表中定义的1,2，4,8，16的任意组合。模式号能被一起添加来为TOD程序创建定做计划。更多信息参考TODMOD命令。\nMODE Schedule\n1 Normal Schedule\n2 Extended Schedule\n4 Shortened Schedule\n8 Weekend Schedule\n16 Holiday Schedule\ncst\t存储计算开始时间的虚拟的LAO点的点名。如果SSTO被禁止（在SSTOCO命令中season=0）， cst被赋值给最后开始时间。\nCsp\t存储计算停止时间的虚拟的LAO点名。如果SSTO被禁止（在SSTOCO命令中season=0），csp被赋值最后停止时间。\nEst 最早开始时间。它能被键入为军用时间，＼数时间，或逻辑点名或局部变量。 Ist 最晚开始时间。它能被键入为军用时间，＼数时间，或逻辑点名或局部变量。 Ost 占用开始时间。它能被键入为军用时间，＼数时间，或逻辑点名或局部变量。 Esp 最早停止时间。它能被键入为军用时间，＼数时间，或逻辑点名或局部变量。 Isp 最晚停止时间。它能被键入为军用时间，＼数时间，或逻辑点名或局部变量。 Osp  占用停止时间，它能被键入为军用时间，＼数时间，或逻辑点名或局部变量。\nAst 全体调整到计算开始时间。这个值能被每天改变。一个＼数值或虚拟LAO点型能被定义来存储这个调整值。\nAsp 全体调整到计算停止时间。这个值能被每天改变。一个＼数值或虚拟LAO点型能被定义来存储这个调整值。\n用途 这个SSTO命令在每个区建立在由SSTOCO命令（外部空气温度，区域温度，预期区域温度等）得来的信息基础上计算最优开始和停止时间，像在SSTO命令中提供的最早，最晚，占用开始时间的参数。\n这个命令有能力在当在实际温度和预期温度之间错误发生时，计算调整时间（ast）后自己谐调来增加或减少开始时间。\nExample\n60 SSTO(1,1,ONTIM,OFTIM,6:30,7:45,8:00,15:30,\n16:45,17:00,0.0,0.0)\n注释\t这个SSTO命令仅仅计算最优的开始和停止时间。TOD和TODSET命令必须用来控制这个点。  当ast或asp键入为0，每次命令出现时电流调整值出来。如果键入为一个虚拟LAO点名，橾作\n员能为ast或asp指定（控制）一个有效值。参考\tSSTOCO，TOD，TODSET"}, {"id": 119, "name": "SSTOCO", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法 SSTOCO(zone,season,intemp,outemp,ctemp,ccoef1,ccoef2,ccoef3,ccoef4,htemp,hcoef1,hcoef2,h coef3,hcoef4)\n对于这个命令中使用的变量，你能用数字，点名，或局部变量。系数值必须被键入如下：仅仅对于5.0版本逻辑固件按分钟计。\n所有其它版本固件均按小时的分数计。\nZone\tSSTO区号。有效值1一5。\nSeason\t现在季节。点名值表示用的系数（热＝2，冷＝1，禁止SSTO＝0） Intemp\t门内区域温度感应器的点名或平均数。\nOutemp\t门外区域温度感应器的点名或平均数。\nCtemp\t预期致冷季节的区域温度。它能被键入为一个浮动点（十进制）数，整数，点名，或局部变量。\nCcoef1\t致冷系数一时间，当忽略外部负载因素时，要求比区域温度低1度，按小时计。 Ccoef2\t致冷保持系数一时间，在致冷季节当致冷设备关闭，外部空气阻尼器打开并且外部\n温度比预期区域温度高10度时，要求比区域温度高1度，按小时计。\nCcoef3\t致冷转移系数一时间，在致冷季节当外部空气阻尼器关闭并且外部温度比预期区域温度高10度时，要求比区域温度低1度，按小时计。\nCcoef4\t致冷自动调整系数一时间，从SSTO命令中的调节时间加或者减作为自身调节特征部\n分。\nHtemp\t供热季节预期区域温度。它能被键入一个浮动点（十进制）数，整数，点名或局部变\n量。\nHcoef1\t供热系数一按小时计的时间，当忽略外部负载因素被要求来提供区域温度1度。 Hcoef2\t供热保持系数一按小时计的时间，当供热设备关闭，外部空气阻尼器打开并且外部\n温度低于供热季节预期区域温度25度时，被要求降低区域温度1度。\nHcoef3\t供热转移系数一按小时计的时间，当外部空气阻尼器关闭并且外部温度低于供热季节预期区域温度25度时，被要求升高区域温度1度。\nHcoef4\t热自动调节系数一按小时计的时间，它做为自我调节特征部分被从SSTO命令中的调节时间加或者减。\n用途\t这个命令定义建立在季节，门内温度，门外温度，和变化的热和／或冷系数基础上的区域特征，它必须用来计算最优的开始和停止时间。\nExample\n100 SSTOCO(1,1,ROOM10,OATEMP,75.0, 0.01,0.3,\n0.05,0.083,72.0,0.1,0.1,0.2,0.083)\n参考\tSSTO，TOD，TODMOD"}, {"id": 120, "name": "STATE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tSTATE(@pri,statetext,pt1...pt14)\n@pri\t指定一个可选的参数来标记指定点优先。 Statetext\t在辅助的状态文字表中能找到的状态文字\npt1 through pt14\t能被控制特定状态的点。如果用@pri参数，仅仅能定义14个点。\n用途\t这个语句用状态文字值来控制点。\nExample\n500 STATE(NIGHT,TEC1,TEC2,TEC3,TEC4)"}, {"id": 121, "name": "TABLE", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法  TABLE(input,output,x1,y1,...,x7,y7)\ninput 输入（X）变量的点名。可以用局部变量或虚拟的LAI点型。 Output  输出（X）变量的点名。可以用局部变量或虚拟的LAO点型。\nx1,y1 through x7,y7  定义x-y关系的双坐标。Y1是当输出＝x1时输出的值，其它相同。坐标系能被键入整数或＼数。\n用途  这个命令允许你通过指定一对坐标来定义两个变量中的普通功能。\nTABLE命令为输出（y）做一个直线插值，当输入在一对x值间时。X点必须按上升顺序键入（即 x3必须比x2大等）。对于比x1低的输入，输出将一直等于y1。对于比最后用的x大的输出，输出针等于键入的最后的y值。\nExample\n500 C\n502 C TABLE COMMAND INFORMATION:\n504 C\n506 C OATEMP (X) HWSP (Y)\n508 C\n510 C 0 DEG F 180 DEG F\n512 C 60 DEG F 100 DEG F\n514 C\n520 TABLE(OATEMP,HWSP,0,180,60,100)\n热水设置点将保持在180°F，当外部温度低于0°F时。当外部温度在60°F以上，热水设置点将保持在100°F。\n注释\t表语句能通过用虚拟点重复x-y对被分多级进行。"}, {"id": 122, "name": "TIMAVG", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tTIMAVG(result,st,samples,input)\nresult\t被用于存储平均值结果的点名。也可使用局部变量。\nSt\t每个例子中的第二个数。它能被键入整数，点名，或局部变量。 Samples\t\t\t用于计算平均值的例子数。它必须是1一10间的整数。 Input\t\t计算平均值的LAI或LAO点的点名。也能用局部变量。\n用途\t这个命令用于发现平均值超时。你决定值应该隔多久被提取（例子时间）和被提取的值的数目。\nExample\n10 C SIX SAMPLES WILL BE TAKEN TO\n20 C CALCULATE THE RMAVG.\n30 C THE INTERVAL BETWEEN EACH SAMPLE\n40 C WILL BE 10 MINUTES. RMTEMP WILL\n50 C BE AVERAGED EVERY 60 MINUTES.\n60 TIMAVG(RMAVG,600,6,RMTEMP)\n平均值将在每个样本时间被更新。\nExample\n100 TIMAVG (RMAVG, 600, 6, RMTEMP),\n在随后句子中，RMAVG将每600秒改变而不是每100秒（假定RMTEMP经常改变）\n注释\t当从电源故障中恢复时，在一个ENABLE命令后，或在带数据库负载的PPCL的第一次执行期间，TIMAVG命令开始执行一个样本。结果的值将等于输入的现在的值。"}, {"id": 123, "name": "TOD", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n语法\tTOD(mode,recomd,time1,time2,pt1,...,pt12)\nmode\t模式号。有效输出是任何下表中定义的1,2，4,8或16的组合。模式号能一起被添加给TOD程序创建定制的表格。模式号16仅仅被用于HOLIDA命令。\nMODE Schedule\n1 Normal Schedule\n2 Extended Schedule\n4 Shortened Schedule\n8 Weekend Schedule\n16 Holiday Schedule\nrecomd\t决定在从电源故障（故障一安全位置）中恢复后定义的点是否将被控制。Recomd有时对于字段界面加热起点是必须的。\n有效输入是随后的：\n0＝在从电源故障恢复后，不重新控制这些点，pt1-pt2\n1＝在从电源故障恢复后，重新控制这些点，pt1-pt2。\nTime1\t一个ON命令执行的时间。Time1能被键入为军用时间格式，＼数格式，点名，或者局部变量。\nTime2\t一个OFF命令执行的时间。Time2能被键入为军用时间格式，＼数格式，点名，或者局部变量。\nPt1 through pt12被控制给一个值的数字输出点的点名。\n用途\t这个命令以星期和日期时间为基础改变数字输出点ON和OFF。如果在TOD命令中的模式号与 TODMOD命令中的模式号相匹配，则TOD在指定时间控制特定输出点ON和OFF。\nExample\n10 TOD(1,1,17:00,07:00,OLITE1,OLITE2)\n控制时间也能是与指派的时间相关的时间点。当你计算一个被用在TOD命令中的时间值并且赋它给相关时间点时，确保计算的时间大于或等于现在的时间。如果被控制的相关点的时间先于或者等于现在的时间，TOD命令将不能正确执行。\n参考\tHOLIDAY，SSTO，TODMOD，TODSET"}, {"id": 124, "name": "TODMOD", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法  TODMOD(momode,tumode,wemode,thmode, frmode,samode,sumode)对于所有模式值，参考下列模式描述的表格：、\nmomode 星期一的模式号。有效输入为1,2，4，或8。 Tumode 星期二的模式号。有效输入为1,2，4，或8。 Wemode 星期三的模式号。有效输入为1,2，4，或8。 Thmode 星期四的模式号。有效输入为1,2，4，或8。 Frmode 星期五的模式号。有效输入为1,2，4，或8。 Samode 星期六的模式号。有效输入为1,2，4，或8。 Sumode  星期天的模式号。有效输入为1,2，4，或8。\nMODE Schedule\n1 Normal Schedule\n2 Extended Schedule\n4 Shortened Schedule\n8 Weekend Schedule 16* Holiday Schedule\n有相同时间表的日期被赋同一MODE。模式号16不能被键入TODMOD命令。\n用途\t这个命令对于一周的每一天定义特定的模式（正常，周未等）。指派一周特定一天的模式被用于和TOD和TODSET命令联合走来控制那一天的点。\nExample\n110 TODMOD(1,1,1,1,2,4,8)\n在这个例子中，星期一到星期四被指派为正常时间表，星期五被指派为extended时间表，星期六被指派为shortened时间表，星期六被指派为weekend时间表。\n注释 HOLIDA和TODMOD命令必须优先任何TOD或TODSET命令，为了程序正确的运行。在字段界面内的HOLIDA或TODMOD命令将仅仅影响字段界面内的TOD和TODSET命令。当在HOLIDA命令中碰到一个假期，在TODMOD命令中那一天的模式号被设定为16。\n参考\tHOLIDA，TOD，TODSET"}, {"id": 125, "name": "TODSET", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n语法\tTODSET(mode,recomd,time1,val1,time2,val2,pt1,..., pt10) mode\t模式号。有效输入为下表中定义的1,2，4，8，或16。\nMODE Schedule\n1 Normal Schedule\n2 Extended Schedule\n4 Shortened Schedule\n8 Weekend Schedule 16* Holiday Schedule\n对于TOD程序，模式号能被一起添加来创建客户化时间表。模式号16仅仅被用于HOLIDA命令。 Recomd\t在从电源故障中恢复后（故障一安全位置），决定定义的点是否被控制。对于字段\n界面warmstarts，recomd有时是必须的。有效输入如下：\n0＝在电源故障恢复后，不重新控制点，pt1-pt10。\n1＝在电源故障恢复后，重新控制点，pt1-pt10。\nTime1\t输出点（pt1-pt10）被控制给val1的时间。Time1被键入为军用时间格式，＼数，逻辑点名或局部变量。\nVal1\t假定在time1输出点（pt1-pt10）的模拟值。它能被键入为军用时间格式，＼数，逻辑点名或局部变量。\nTime2\t输出点（pt1-pt10）被控制给val2的时间。Time2被键入为军用时间格式，＼数，逻辑点名或局部变量。\nVal2\t假定在time2输出点（pt1-pt10）的模拟值。它能被键入为军用时间格式，＼数，逻辑点名或局部变量。\npt1 through pt10\t控制ON和OFF的模拟输出点名。\n用途\t这个命令对于模拟点来说是TOD命令的副本。它以周日期和日期的时间为基础控制模拟输出点。如果在TODSET命令中的模式号与TODMOD命令中的模式号匹配，那么TODSET将在指定时间控制特定的输出点到val1和val2。\nExample\n550 TODSET(1,1,9:00,72.0,17:00,55.0, SPTEMP)\n参考\tHOLIDAY，TOD，TODMOD"}, {"id": 126, "name": "WAIT", "category": "命令语句", "content": "Physical\tLogical\tUnitary\tCM\tAPOGEE\n\n逻辑语法\tWAIT(time,pt1,pt2,mode)\ntime\t\t时间延迟，能被键入为从1一32,767秒。它能键入整数，点名，或局部变量。 Pt1\t数字触发点的点名。有效点型是LDI，LDO，L2SL，L2SP，LOOAL，和LOOAP。你也能\n用局部变量。\nPt2\t被控制的数字点的点名。有效点型是LDI，LDO，L2SL，L2SP，LOOAL和LOOAP。你也能用局部变量。\nMode\t以pt1值为基础定义值来控制pt2。下表列出了有效模式。 Mode Meaning\n11 When pt1 turns ON, wait time seconds then turn pt2 ON. 10 When pt1 turns ON, wait time seconds then turn pt2 OFF. 01 When pt1 turns OFF, wait time seconds then turn pt2 ON. 00 When pt1 turns OFF, wait time seconds then turn pt2 OFF.实际语法\tWAIT(time,pt1,pt2)\ntime\t键入为1一32,767秒的时间延迟。它必须被键入为整数。\nPt1\t数字触发器点的点名。有效点型是LDI，LDO，L2SL，L2SP，LOOAL和LOOAP。 PT2\t控制的数字点的点名。有效点型是LDO，L2SL，L2SP，LOOAL和LOOAP。\n用途\t对于实际固件，WAIT命令在一个预期时间延迟后，改变为以另一个数字点值为基础的一个数字点的值。当触发点被开启，程序等待定义的时间后，然后开启数字点（pt2）。\n对于其它所有固件，结果点能被开启或关闭，建立在触发点开关开或者关基础上。触发／结果行为的选择建立在你建立的模式基础上。\nExample of a logical WAIT\n70 C EXAMPLE OF A WAIT COMMAND IN LOGICAL\n71 C FIRMWARE. WHEN CNPUMP IS TURNED ON,\n72 C THE FIELD PANEL WAITS 60 SECONDS\n74 C BEFORE TURNING CHPUMP ON.\n75 WAIT(60,CNPUMP,CHPUMP,11)\nExample of a physical WAIT\n80 C EXAMPLE OF A WAIT COMMAND IN PHYSICAL\n81 C FIRMWARE. WHEN CNPUMP IS TURNED ON,\n82 C THE FIELD PANEL WAITS 60 SECONDS\n84 C BEFORE TURING CHPUMP ON.\n85 WAIT(60,CNPUMP,CHPUMP)\n注释\t在从电源故障中恢复或当WAIT命令被激活时，触发点必须在命令执行前被切换即不管pt1也不管pt2的电流状态。\n在程序正常运行期间直到再一次触发给pt2的命令仅仅传递一次。"}];
+
+// State
+let currentCategory = 'all';
+let currentResults = [];
+let currentDetailIdx = -1;
+let searchQuery = '';
+
+const categoryPalette = ['#1565c0', '#7b1fa2', '#2e7d32', '#e65100', '#c62828', '#00695c', '#558b2f', '#f57f17', '#283593', '#0d47a1'];
+const categoryTone = new Map();
+
+// DOM
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearSearch');
+const resultsGrid = document.getElementById('resultsGrid');
+const resultsCount = document.getElementById('resultsCount');
+const noResults = document.getElementById('noResults');
+const resultsView = document.getElementById('resultsView');
+const detailView = document.getElementById('detailView');
+const detailTitle = document.getElementById('detailTitle');
+const detailCategory = document.getElementById('detailCategory');
+const detailContent = document.getElementById('detailContent');
+const detailIndex = document.getElementById('detailIndex');
+const totalCount = document.getElementById('totalCount');
+const categoryTotal = document.getElementById('categoryTotal');
+const sidebar = document.getElementById('sidebar');
+const pageLangToggle = document.getElementById('pageLangToggle');
+const brandTitle = document.querySelector('.brand-text h1');
+const brandSubtitle = document.querySelector('.brand-text p');
+const viewHint = document.querySelector('.view-hint');
+const noResultsTitle = document.querySelector('.no-results h3');
+const noResultsText = document.querySelector('.no-results p');
+const footerNote = document.querySelector('.footer');
+const backBtn = document.querySelector('.detail-back');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+let pageLang = 'en';
+
+const CATEGORY_LABELS = {
+    '关系运算符': { en: 'Relational operators', zh: '关系运算符' },
+    '逻辑运算符': { en: 'Logical operators', zh: '逻辑运算符' },
+    '算术运算符': { en: 'Arithmetic operators', zh: '算术运算符' },
+    '算术函数': { en: 'Arithmetic functions', zh: '算术函数' },
+    '特殊函数': { en: 'Special functions', zh: '特殊函数' },
+    '保留点': { en: 'Reserved points', zh: '保留点' },
+    '局部变量': { en: 'Local variables', zh: '局部变量' },
+    '优先指示器': { en: 'Priority indicators', zh: '优先指示器' },
+    '点状态符': { en: 'Point status symbols', zh: '点状态符' },
+    '命令语句': { en: 'Command statements', zh: '命令语句' }
+};
+
+const SECTION_LABELS = {
+    '语法': { en: 'Syntax', zh: '语法' },
+    '用途': { en: 'Purpose', zh: '用途' },
+    '例子': { en: 'Example', zh: '例子' },
+    '范例': { en: 'Example', zh: '范例' },
+    '注释': { en: 'Notes', zh: '注释' },
+    '释义': { en: 'Definition', zh: '释义' },
+    '参考': { en: 'Reference', zh: '参考' },
+    '范围': { en: 'Range', zh: '范围' },
+    '说明': { en: 'Description', zh: '说明' },
+    '格式': { en: 'Format', zh: '格式' }
+};
+
+const UI_TEXT = {
+    en: {
+        title: 'NN-BU PPCL Command Reference',
+        subtitle: 'Powers Process Control Language · Quick reference manual',
+        total: (count) => `${count} entries`,
+        categories: (count) => `${count} categories`,
+        sidebar: 'Category filter',
+        all: 'All categories',
+        search: 'Search command, category or keyword, e.g. IF, GOTO, ALARM, .EQ., PDL ...',
+        clear: 'Clear search',
+        hint: 'Enter opens selected item · Esc returns or clears search',
+        found: (count, category, query) => `Found <strong>${count}</strong> entries · ${category}${query ? ` · keyword "${escapeHtml(query)}"` : ''}`,
+        zero: '<strong>0</strong> matching entries',
+        noTitle: 'No matching entries',
+        noText: 'Try another keyword, or clear the search filter.',
+        viewAria: (name) => `Open ${name}`,
+        back: '← Back to list',
+        prev: '← Previous',
+        next: 'Next →',
+        footer: 'PPCL command reference · Powers Process Control Language user manual (Chinese source) · Offline version',
+        langButton: 'EN / 中文'
+    },
+    zh: {
+        title: 'NN-BU PPCL 命令查询工具',
+        subtitle: 'Powers Process Control Language · 快速检索手册',
+        total: (count) => `共 ${count} 个词条`,
+        categories: (count) => `共 ${count} 个分类`,
+        sidebar: '分类筛选',
+        all: '全部分类',
+        search: '输入命令、类别或关键字，例如 IF、GOTO、ALARM、.EQ.、PDL ...',
+        clear: '清除搜索',
+        hint: 'Enter 打开选中项 · Esc 返回或清空搜索',
+        found: (count, category, query) => `找到 <strong>${count}</strong> 个词条 · ${escapeHtml(category)}${query ? `，关键字 “${escapeHtml(query)}”` : ''}`,
+        zero: '<strong>0</strong> 个匹配词条',
+        noTitle: '未找到匹配的词条',
+        noText: '换一个关键字，或清除搜索条件再试。',
+        viewAria: (name) => `查看 ${name}`,
+        back: '← 返回列表',
+        prev: '← 上一条',
+        next: '下一条 →',
+        footer: 'PPCL 命令查询工具 · Powers Process Control Language 用户手册（中文版）· 离线版',
+        langButton: '中文 / EN'
+    }
+};
+
+function t(key) {
+    return UI_TEXT[pageLang][key];
+}
+
+function categoryLabel(category) {
+    if (category === 'all') return t('all');
+    return CATEGORY_LABELS[category]?.[pageLang] || category;
+}
+
+function categoryIcon(category, label) {
+    if (category === 'all') return pageLang === 'en' ? 'ALL' : '全';
+    if (pageLang === 'en') {
+        return label.split(/\s+/).map(word => word[0]).join('').slice(0, 2).toUpperCase();
+    }
+    return label.slice(0, 1);
+}
+
+function sectionLabelText(label) {
+    return SECTION_LABELS[label]?.[pageLang] || label;
+}
+
+function getCategories() {
+    const counts = new Map();
+    DB.forEach(entry => counts.set(entry.category, (counts.get(entry.category) || 0) + 1));
+    return Array.from(counts, ([name, count], index) => ({ name, count, color: categoryPalette[index % categoryPalette.length] }));
+}
+
+function getCategoryColor(category) {
+    return categoryTone.get(category) || categoryPalette[0];
+}
+
+function renderCategories() {
+    const categories = getCategories();
+    categoryTone.clear();
+    categories.forEach(cat => categoryTone.set(cat.name, cat.color));
+
+    totalCount.textContent = t('total')(DB.length);
+    categoryTotal.textContent = t('categories')(categories.length);
+
+    const items = [{ name: 'all', label: categoryLabel('all'), count: DB.length, color: '#001965' }]
+        .concat(categories.map(cat => ({ name: cat.name, label: categoryLabel(cat.name), count: cat.count, color: cat.color })));
+
+    sidebar.setAttribute('aria-label', t('sidebar'));
+    sidebar.innerHTML = `<div class="sidebar-title">${escapeHtml(t('sidebar'))}</div>` + items.map((item) => `
+        <button class="category-item${item.name === currentCategory ? ' active' : ''}" type="button" data-category="${escapeHtml(item.name)}" onclick="filterCategory('${escapeJs(item.name)}', this)">
+            <span class="category-icon" style="background:${item.color}">${escapeHtml(categoryIcon(item.name, item.label))}</span>
+            <span class="category-name">${escapeHtml(item.label)}</span>
+            <span class="category-count">${item.count}</span>
+        </button>
+    `).join('');
+}
+
+function fuzzyMatch(str, query) {
+    const s = String(str).toLowerCase();
+    const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    return words.every(word => s.includes(word));
+}
+
+function highlightText(text, query) {
+    if (!query || !query.trim()) return escapeHtml(text);
+    const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    let result = escapeHtml(text);
+    for (const word of words) {
+        const regex = new RegExp('(' + escapeRegex(word) + ')', 'gi');
+        result = result.replace(regex, '<mark>$1</mark>');
+    }
+    return result;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function escapeJs(text) {
+    return String(text).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function updateResults() {
+    const query = searchInput.value.trim();
+    searchQuery = query;
+    clearBtn.style.display = query ? 'flex' : 'none';
+
+    let results = DB;
+    if (currentCategory !== 'all') {
+        results = results.filter(entry => entry.category === currentCategory);
+    }
+
+    if (query) {
+        results = results.filter(entry =>
+            fuzzyMatch(entry.name, query) ||
+            fuzzyMatch(entry.content, query) ||
+            fuzzyMatch(entry.category, query)
+        );
+    }
+
+    currentResults = results;
+    renderResults();
+}
+
+function renderResults() {
+    if (currentResults.length === 0) {
+        resultsGrid.innerHTML = '';
+        noResults.style.display = 'block';
+        resultsCount.innerHTML = t('zero');
+        return;
+    }
+
+    noResults.style.display = 'none';
+    const categoryText = categoryLabel(currentCategory);
+    resultsCount.innerHTML = t('found')(currentResults.length, categoryText, searchQuery);
+
+    resultsGrid.innerHTML = currentResults.map((entry, idx) => {
+        const preview = entry.content.replace(/\s+/g, ' ').trim().substring(0, 145);
+        const color = getCategoryColor(entry.category);
+        return `<article class="result-card" tabindex="0" role="button" aria-label="${escapeHtml(t('viewAria')(entry.name))}" onclick="showDetail(${idx})" onkeydown="handleCardKey(event, ${idx})" style="--category-color:${color}; animation-delay:${Math.min(idx * 0.018, 0.28)}s">
+            <div class="result-card-header">
+                <div class="result-card-title">${highlightText(entry.name, searchQuery)}</div>
+                <span class="result-card-badge">${escapeHtml(categoryLabel(entry.category))}</span>
+            </div>
+            <div class="result-card-preview">${highlightText(preview, searchQuery)}</div>
+        </article>`;
+    }).join('');
+}
+
+function handleCardKey(event, idx) {
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        showDetail(idx);
+    }
+}
+
+function showDetail(idx) {
+    currentDetailIdx = idx;
+    const entry = currentResults[idx];
+    if (!entry) return;
+
+    detailTitle.textContent = entry.name;
+    detailCategory.textContent = categoryLabel(entry.category);
+    detailIndex.textContent = `${idx + 1} / ${currentResults.length}`;
+
+    const lines = entry.content.split('\n');
+    let html = '';
+    const sectionLabels = ['语法', '用途', '例子', '注释', '释义', '参考', '范围', '范例', '说明', '格式'];
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+            html += '<div class="content-line empty"></div>';
+            return;
+        }
+
+        const label = sectionLabels.find(item => trimmed === item || trimmed.startsWith(item + '\t') || trimmed.startsWith(item + ' '));
+        if (label) {
+            const parts = line.split(/\t/);
+            html += `<div class="section-label">${escapeHtml(sectionLabelText(parts[0].trim()))}</div>`;
+            if (parts.length > 1) {
+                html += `<div class="content-line syntax-line">${escapeHtml(parts.slice(1).join('  '))}</div>`;
+            }
+            return;
+        }
+
+        if (/^\d{2,5}\s/.test(trimmed) || /^[A-Z][A-Z0-9_]*\s*[=(]/.test(trimmed)) {
+            html += `<div class="content-line example-line">${escapeHtml(line)}</div>`;
+        } else if (line.includes('\t')) {
+            html += `<div class="content-line syntax-line">${escapeHtml(line.replace(/\t/g, '  '))}</div>`;
+        } else {
+            html += `<div class="content-line">${escapeHtml(line)}</div>`;
+        }
+    });
+
+    detailContent.innerHTML = html;
+    prevBtn.className = 'detail-nav-btn' + (idx <= 0 ? ' disabled' : '');
+    nextBtn.className = 'detail-nav-btn' + (idx >= currentResults.length - 1 ? ' disabled' : '');
+
+    resultsView.style.display = 'none';
+    detailView.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBack() {
+    detailView.classList.remove('active');
+    resultsView.style.display = 'block';
+    requestAnimationFrame(() => {
+        const firstCard = resultsGrid.querySelector('.result-card');
+        if (firstCard) firstCard.focus({ preventScroll: true });
+    });
+}
+
+function navPrev() {
+    if (currentDetailIdx > 0) showDetail(currentDetailIdx - 1);
+}
+
+function navNext() {
+    if (currentDetailIdx < currentResults.length - 1) showDetail(currentDetailIdx + 1);
+}
+
+function filterCategory(cat, el) {
+    currentCategory = cat;
+    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+    detailView.classList.remove('active');
+    resultsView.style.display = 'block';
+    updateResults();
+}
+
+function clearSearchInput() {
+    searchInput.value = '';
+    searchInput.focus();
+    updateResults();
+}
+
+function applyStaticLanguage(options = {}) {
+    const rerender = options.rerender !== false;
+    document.documentElement.lang = pageLang === 'en' ? 'en' : 'zh-CN';
+    document.title = pageLang === 'en' ? 'PPCL Command Reference' : 'PPCL 命令查询工具';
+    brandTitle.textContent = t('title');
+    brandSubtitle.textContent = t('subtitle');
+    searchInput.placeholder = t('search');
+    clearBtn.setAttribute('aria-label', t('clear'));
+    viewHint.textContent = t('hint');
+    noResultsTitle.textContent = t('noTitle');
+    noResultsText.textContent = t('noText');
+    backBtn.textContent = t('back');
+    prevBtn.textContent = t('prev');
+    nextBtn.textContent = t('next');
+    footerNote.textContent = t('footer');
+    pageLangToggle.textContent = t('langButton');
+
+    if (rerender) {
+        renderCategories();
+        if (detailView.classList.contains('active') && currentDetailIdx > -1) {
+            showDetail(currentDetailIdx);
+        } else {
+            updateResults();
+        }
+    }
+}
+
+pageLangToggle.addEventListener('click', () => {
+    pageLang = pageLang === 'en' ? 'zh' : 'en';
+    applyStaticLanguage();
+});
+
+searchInput.addEventListener('input', updateResults);
+
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+    }
+
+    if (e.key === 'Escape') {
+        if (detailView.classList.contains('active')) {
+            goBack();
+        } else if (searchInput.value) {
+            clearSearchInput();
+        }
+    }
+
+    if (detailView.classList.contains('active')) {
+        if (e.key === 'ArrowLeft') navPrev();
+        if (e.key === 'ArrowRight') navNext();
+    }
+});
+
+applyStaticLanguage({ rerender: false });
+renderCategories();
+updateResults();
+searchInput.focus();
+</script>
+<script id="premium-ppcl-interactions">
+(function () {
+    const root = document.documentElement;
+    const body = document.body;
+    const searchInput = document.getElementById('searchInput');
+    const detailView = document.getElementById('detailView');
+
+    function updatePointer(event) {
+        root.style.setProperty('--spot-x', event.clientX + 'px');
+        root.style.setProperty('--spot-y', event.clientY + 'px');
+        root.style.setProperty('--shine-x', ((event.clientX / Math.max(window.innerWidth, 1)) * 130 - 50).toFixed(2) + '%');
+    }
+
+    function updateProgress() {
+        const max = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+        root.style.setProperty('--read-progress', Math.min(100, Math.max(0, window.scrollY / max * 100)).toFixed(2) + '%');
+    }
+
+    function enhanceCards() {
+        document.querySelectorAll('.result-card').forEach(card => {
+            if (card.dataset.premiumReady) return;
+            card.dataset.premiumReady = 'true';
+            card.addEventListener('pointermove', event => {
+                const rect = card.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const px = x / rect.width;
+                const py = y / rect.height;
+                card.style.setProperty('--mx', (px * 100).toFixed(2) + '%');
+                card.style.setProperty('--my', (py * 100).toFixed(2) + '%');
+                card.style.setProperty('--rx', ((0.5 - py) * 7).toFixed(2) + 'deg');
+                card.style.setProperty('--ry', ((px - 0.5) * 9).toFixed(2) + 'deg');
+                card.classList.add('is-tilting');
+            });
+            card.addEventListener('pointerleave', () => {
+                card.classList.remove('is-tilting');
+                card.style.removeProperty('--rx');
+                card.style.removeProperty('--ry');
+            });
+        });
+    }
+
+    const observer = new MutationObserver(enhanceCards);
+    observer.observe(document.getElementById('resultsGrid'), { childList: true });
+
+    const progress = document.createElement('div');
+    progress.className = 'premium-progress';
+    body.appendChild(progress);
+
+    const floatbar = document.createElement('div');
+    floatbar.className = 'premium-floatbar';
+    floatbar.innerHTML = '<button class="premium-action" type="button" data-action="palette" title="Command palette Ctrl/⌘ + K">⌘K</button><button class="premium-action" type="button" data-action="top" title="Back to top">↑</button>';
+    body.appendChild(floatbar);
+
+    const command = document.createElement('div');
+    command.className = 'premium-command';
+    command.innerHTML = '<div class="premium-panel" role="dialog" aria-label="Command palette"><div class="premium-command-head"><span>⌘K</span><input id="premiumCommandInput" type="text" placeholder="Quick jump command, e.g. GOTO, ALARM, .EQ." autocomplete="off"><button class="premium-action" type="button" data-action="close">×</button></div><div class="premium-command-list" id="premiumCommandList"></div></div>';
+    body.appendChild(command);
+
+    const commandInput = document.getElementById('premiumCommandInput');
+    const commandList = document.getElementById('premiumCommandList');
+    const paletteButton = floatbar.querySelector('[data-action="palette"]');
+    const topButton = floatbar.querySelector('[data-action="top"]');
+    const commandPanel = command.querySelector('.premium-panel');
+    let commandResults = [];
+    let commandActive = 0;
+
+    function premiumText(en, zh) {
+        return pageLang === 'en' ? en : zh;
+    }
+
+    function applyPremiumLanguage() {
+        paletteButton.title = premiumText('Command palette Ctrl/⌘ + K', '命令面板 Ctrl/⌘ + K');
+        topButton.title = premiumText('Back to top', '回到顶部');
+        commandPanel.setAttribute('aria-label', premiumText('Command palette', '命令面板'));
+        commandInput.placeholder = premiumText('Quick jump command, e.g. GOTO, ALARM, .EQ.', '快速跳转命令，例如 GOTO、ALARM、.EQ.');
+    }
+
+    function commandFilter(value) {
+        const query = value.trim().toLowerCase();
+        const words = query.split(/\s+/).filter(Boolean);
+        commandResults = DB.filter(item => {
+            const hay = (item.name + ' ' + item.category + ' ' + item.content).toLowerCase();
+            return words.every(word => hay.includes(word));
+        }).slice(0, 10);
+        commandActive = 0;
+        renderCommandList();
+    }
+
+    function renderCommandList() {
+        if (!commandResults.length) {
+            commandList.innerHTML = '<div class="premium-command-item"><strong>' + premiumText('No matches', '没有匹配结果') + '</strong><span>' + premiumText('Try another keyword', '换个关键词试试') + '</span></div>';
+            return;
+        }
+        commandList.innerHTML = commandResults.map((item, index) => {
+            return '<button class="premium-command-item' + (index === commandActive ? ' active' : '') + '" type="button" data-index="' + index + '"><strong>' + escapeHtml(item.name) + '</strong><span>' + escapeHtml(categoryLabel(item.category)) + '</span></button>';
+        }).join('');
+    }
+
+    function openCommand() {
+        command.classList.add('active');
+        commandInput.value = searchInput ? searchInput.value : '';
+        commandFilter(commandInput.value);
+        requestAnimationFrame(() => commandInput.focus());
+    }
+
+    function closeCommand() {
+        command.classList.remove('active');
+    }
+
+    function jumpToCommand(index) {
+        const entry = commandResults[index];
+        if (!entry) return;
+        closeCommand();
+        if (searchInput) {
+            searchInput.value = entry.name.split('（')[0].trim();
+            updateResults();
+            const foundIndex = currentResults.findIndex(item => item.id === entry.id);
+            showDetail(foundIndex >= 0 ? foundIndex : 0);
+        }
+    }
+
+    commandInput.addEventListener('input', () => commandFilter(commandInput.value));
+    commandInput.addEventListener('keydown', event => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            commandActive = Math.min(commandResults.length - 1, commandActive + 1);
+            renderCommandList();
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            commandActive = Math.max(0, commandActive - 1);
+            renderCommandList();
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            jumpToCommand(commandActive);
+        } else if (event.key === 'Escape') {
+            closeCommand();
+        }
+    });
+
+    commandList.addEventListener('click', event => {
+        const button = event.target.closest('.premium-command-item[data-index]');
+        if (button) jumpToCommand(Number(button.dataset.index));
+    });
+
+    command.addEventListener('click', event => {
+        if (event.target === command || event.target.dataset.action === 'close') closeCommand();
+    });
+
+    pageLangToggle.addEventListener('click', () => {
+        applyPremiumLanguage();
+        renderCommandList();
+    });
+
+    floatbar.addEventListener('click', event => {
+        const action = event.target.dataset.action;
+        if (action === 'palette') openCommand();
+        if (action === 'top') window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.addEventListener('mousemove', updatePointer, { passive: true });
+    document.addEventListener('scroll', updateProgress, { passive: true });
+    document.addEventListener('keydown', event => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+            event.preventDefault();
+            openCommand();
+        }
+    });
+
+    const originalRenderResults = window.renderResults || renderResults;
+    window.renderResults = function () {
+        originalRenderResults();
+        enhanceCards();
+    };
+
+    const originalShowDetail = window.showDetail || showDetail;
+    window.showDetail = function (idx) {
+        originalShowDetail(idx);
+        if (detailView) detailView.animate([{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    };
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
+    applyPremiumLanguage();
+    enhanceCards();
+    updateProgress();
+})();
+</script>
+<script src="../../ui/portal.js?v=20260628-theme"></script>
+</body>
+</html>
