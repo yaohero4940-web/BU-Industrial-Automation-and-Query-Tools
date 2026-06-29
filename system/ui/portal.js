@@ -19,7 +19,7 @@
   }
 
   function portalRoot() {
-    return scriptBase().replace(/_system\/ui\/?$/, "");
+    return scriptBase().replace(/system\/ui\/?$/, "");
   }
 
   function currentTitle() {
